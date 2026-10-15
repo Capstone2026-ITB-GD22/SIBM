@@ -778,12 +778,22 @@
 
   /* ──────────────────────────────────────────────────────────
      DATASOURCE CONFIG
-     File di folder data/ masih berekstensi .json
+     Mendukung file .json dan .geojson, di folder data/ atau root.
+     Urutan: coba path pertama, jika 404 coba path berikutnya.
   ────────────────────────────────────────────────────────── */
   const SOURCES = [
-    { path: 'data/ORDE_1.json', orde: 1, color: '#2563EB', label: 'ORDE 1' },
-    { path: 'data/ORDE_2.json', orde: 2, color: '#16A34A', label: 'ORDE 2' },
-    { path: 'data/ORDE_3.json', orde: 3, color: '#EA580C', label: 'ORDE 3' },
+    {
+      paths: ['data/ORDE_1.json', 'ORDE_1.json', 'data/ORDE_1.geojson', 'ORDE_1.geojson'],
+      orde: 1, color: '#2563EB', label: 'ORDE 1'
+    },
+    {
+      paths: ['data/ORDE_2.json', 'ORDE_2.json', 'data/ORDE_2.geojson', 'ORDE_2.geojson'],
+      orde: 2, color: '#16A34A', label: 'ORDE 2'
+    },
+    {
+      paths: ['data/ORDE_3.json', 'ORDE_3.json', 'data/ORDE_3.geojson', 'ORDE_3.geojson'],
+      orde: 3, color: '#EA580C', label: 'ORDE 3'
+    },
   ];
 
   /* ──────────────────────────────────────────────────────────
@@ -899,6 +909,26 @@
   }
 
   /* ──────────────────────────────────────────────────────────
+     FETCH DENGAN FALLBACK PATH
+  ────────────────────────────────────────────────────────── */
+  async function fetchWithFallback(paths, label) {
+    const tried = [];
+    for (const p of paths) {
+      try {
+        const res = await fetch(p);
+        if (res.ok) {
+          console.log(`[WebGIS] ${label} ditemukan di: ${p}`);
+          return res;
+        }
+        tried.push(`${p} (HTTP ${res.status})`);
+      } catch (e) {
+        tried.push(`${p} (${e.message})`);
+      }
+    }
+    throw new Error(`Semua path dicoba tapi gagal: ${tried.join(', ')}`);
+  }
+
+  /* ──────────────────────────────────────────────────────────
      LOAD GEOJSON FILES
   ────────────────────────────────────────────────────────── */
   async function loadAll() {
@@ -908,10 +938,9 @@
 
     const jobs = SOURCES.map(async src => {
       try {
-        setLoadMsg(`Memuat ${src.label}…`);
-        const res = await fetch(src.path);
-        if (!res.ok) throw new Error(`HTTP ${res.status} – ${res.statusText}`);
-        const gj = await res.json();
+        setLoadMsg(`Mencari ${src.label}…`);
+        const res = await fetchWithFallback(src.paths, src.label);
+        const gj  = await res.json();
 
         if (!gj || gj.type !== 'FeatureCollection' || !Array.isArray(gj.features)) {
           throw new Error('Bukan FeatureCollection yang valid');
@@ -920,12 +949,11 @@
         gj.features.forEach(feat => {
           if (!feat || !feat.geometry) return;
           const coords = feat.geometry.coordinates;
-          // Skip empty or invalid coordinates
           if (!Array.isArray(coords) || coords.length < 2) return;
           const lng = coords[0];
           const lat = coords[1];
           if (!isFinite(lat) || !isFinite(lng)) return;
-          if (lat === 0 && lng === 0) return; // skip null island
+          if (lat === 0 && lng === 0) return;
 
           feat._fid   = ++fid_counter;
           feat._orde  = src.orde;
@@ -941,14 +969,13 @@
 
         loaded++;
       } catch (err) {
-        console.error(`[WebGIS] Gagal memuat ${src.path}:`, err);
+        console.error(`[WebGIS] Gagal memuat ${src.label}:`, err);
         errors.push(`<strong>${src.label}</strong>: ${esc(err.message)}`);
       }
     });
 
     await Promise.all(jobs);
 
-    // Fit bounds to loaded data
     if (latLngs.length > 0) {
       S.dataBounds = L.latLngBounds(latLngs);
       map.fitBounds(S.dataBounds, { padding: [40, 40] });
@@ -960,16 +987,18 @@
     if (errors.length) {
       showError(
         'Beberapa file gagal dimuat:<br>' + errors.join('<br>') +
-        '<br><small>Pastikan app diakses via server (bukan file://), ' +
-        'dan file ada di folder <code>data/</code>.</small>'
+        '<br><small>Cek nama file di GitHub: <code>ORDE_1.json</code>, ' +
+        '<code>ORDE_2.json</code>, <code>ORDE_3.json</code> ' +
+        '(boleh di root repo atau folder <code>data/</code>).</small>'
       );
     }
 
     if (loaded === 0) {
       showError(
-        'Tidak ada data yang berhasil dimuat. ' +
-        'Jalankan aplikasi melalui server lokal atau Vercel, ' +
-        'bukan dengan membuka file:// langsung di browser.'
+        '<strong>Tidak ada data yang berhasil dimuat.</strong><br>' +
+        'Pastikan nama file di GitHub adalah <code>ORDE_1.json</code>, ' +
+        '<code>ORDE_2.json</code>, <code>ORDE_3.json</code> ' +
+        'dan Vercel sudah di-redeploy setelah upload.'
       );
     }
 
