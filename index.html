@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>WebGIS Titik BM — Blok Rokan</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    /* ============================================================
+       RESET & CSS VARIABLES
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:        #2563EB;
+      --blue-hover:  #1D4ED8;
+      --blue-light:  #EFF6FF;
+      --green:       #16A34A;
+      --orange:      #EA580C;
+      --white:       #FFFFFF;
+      --gray-50:     #F8FAFC;
+      --gray-100:    #F1F5F9;
+      --gray-200:    #E2E8F0;
+      --gray-300:    #CBD5E1;
+      --gray-400:    #94A3B8;
+      --gray-500:    #64748B;
+      --gray-600:    #475569;
+      --gray-700:    #334155;
+      --gray-800:    #1E293B;
+      --shadow-sm:   0 1px 3px rgba(0,0,0,.08);
+      --shadow-md:   0 4px 12px rgba(0,0,0,.10);
+      --shadow-lg:   0 10px 25px rgba(0,0,0,.10), 0 4px 8px rgba(0,0,0,.06);
+      --radius:      10px;
+      --panel-w:     310px;
+      --ease:        .2s ease;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      color: var(--gray-800);
+      overflow: hidden;
+      background: var(--gray-100);
+    }
+
+    /* ============================================================
+       APP SHELL
+    ============================================================ */
+    #app {
+      display: flex;
+      height: 100dvh;
+      width: 100vw;
+      position: relative;
+    }
+
+    /* ============================================================
+       SIDEBAR
+    ============================================================ */
+    #panel {
+      width: var(--panel-w);
+      height: 100%;
+      background: var(--white);
+      box-shadow: 2px 0 16px rgba(0,0,0,.08);
+      display: flex;
+      flex-direction: column;
+      z-index: 1000;
+      flex-shrink: 0;
+      transition: transform var(--ease);
+    }
+
+    #panel.collapsed { transform: translateX(calc(-1 * var(--panel-w))); }
+
+    /* panel header */
+    #panel-header {
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--gray-100);
+      flex-shrink: 0;
+      background: var(--white);
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--blue);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    #panel-header h1 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--gray-800);
+      line-height: 1.2;
+    }
+
+    #panel-header p {
+      font-size: 11px;
+      color: var(--gray-400);
+      margin-top: 1px;
+    }
+
+    /* panel body scrollable */
+    #panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 14px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    #panel-body::-webkit-scrollbar { width: 3px; }
+    #panel-body::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 4px; }
+
+    /* ============================================================
+       SECTION HEADING
+    ============================================================ */
+    .sec-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .9px;
+      color: var(--gray-400);
+      margin-bottom: 7px;
+    }
+
+    /* ============================================================
+       SEARCH
+    ============================================================ */
+    #search-wrap { position: relative; }
+
+    #search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 13px;
+      color: var(--gray-400);
+      pointer-events: none;
+    }
+
+    #search-input {
+      width: 100%;
+      padding: 9px 30px 9px 33px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius);
+      font-size: 13px;
+      background: var(--gray-50);
+      color: var(--gray-800);
+      outline: none;
+      transition: border-color var(--ease), box-shadow var(--ease), background var(--ease);
+    }
+
+    #search-input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+      background: var(--white);
+    }
+
+    #search-input::placeholder { color: var(--gray-400); }
+
+    #search-clear {
+      position: absolute;
+      right: 8px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      cursor: pointer; color: var(--gray-400);
+      font-size: 14px; line-height: 1;
+      display: none; padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    #search-clear:hover { color: var(--gray-700); background: var(--gray-100); }
+
+    /* dropdown */
+    #search-dropdown {
+      display: none;
+      background: var(--white);
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      max-height: 220px;
+      overflow-y: auto;
+      margin-top: 5px;
+      position: relative;
+      z-index: 10;
+    }
+
+    #search-dropdown::-webkit-scrollbar { width: 3px; }
+    #search-dropdown::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 4px; }
+
+    .sr-item {
+      padding: 9px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--gray-100);
+      transition: background var(--ease);
+    }
+
+    .sr-item:last-child { border-bottom: none; }
+    .sr-item:hover { background: var(--blue-light); }
+
+    .sr-name { font-size: 13px; font-weight: 600; color: var(--gray-800); }
+    .sr-meta { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+
+    .sr-badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      margin-left: 5px;
+    }
+
+    .badge-1 { background: rgba(37,99,235,.12);  color: var(--blue); }
+    .badge-2 { background: rgba(22,163,74,.12);   color: var(--green); }
+    .badge-3 { background: rgba(234,88,12,.12);   color: var(--orange); }
+
+    .sr-empty {
+      padding: 14px;
+      text-align: center;
+      color: var(--gray-400);
+      font-size: 12px;
+    }
+
+    /* ============================================================
+       FILTER
+    ============================================================ */
+    .filter-group { display: flex; flex-direction: column; gap: 7px; }
+
+    .filter-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--gray-500);
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    select.fsel {
+      width: 100%;
+      padding: 8px 30px 8px 10px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius);
+      font-size: 13px;
+      background: var(--gray-50);
+      color: var(--gray-700);
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%2394A3B8' d='M5 7L0 2h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      transition: border-color var(--ease);
+    }
+
+    select.fsel:focus { border-color: var(--blue); }
+
+    /* ============================================================
+       LAYER TOGGLES
+    ============================================================ */
+    .layer-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      user-select: none;
+      transition: background var(--ease);
+    }
+
+    .layer-row:hover { background: var(--gray-50); }
+
+    .layer-row input[type="checkbox"] {
+      width: 15px; height: 15px;
+      cursor: pointer;
+      accent-color: var(--blue);
+      flex-shrink: 0;
+    }
+
+    .layer-dot {
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      border: 2px solid rgba(0,0,0,.14);
+      flex-shrink: 0;
+    }
+
+    .dot-1 { background: var(--blue); }
+    .dot-2 { background: var(--green); }
+    .dot-3 { background: var(--orange); }
+
+    .layer-name { flex: 1; font-size: 13px; font-weight: 500; color: var(--gray-700); }
+
+    .layer-cnt {
+      font-size: 11px; color: var(--gray-400);
+      background: var(--gray-100);
+      padding: 1px 7px; border-radius: 20px;
+      min-width: 28px; text-align: center;
+    }
+
+    /* ============================================================
+       BASEMAP SWITCHER
+    ============================================================ */
+    .bmap-row { display: flex; gap: 6px; }
+
+    .bmap-btn {
+      flex: 1; padding: 7px 4px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 8px;
+      background: var(--gray-50);
+      font-size: 11px; font-weight: 600;
+      color: var(--gray-500);
+      cursor: pointer;
+      transition: all var(--ease);
+      text-align: center;
+    }
+
+    .bmap-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .bmap-btn.active { background: var(--blue); border-color: var(--blue); color: var(--white); }
+
+    /* ============================================================
+       STATS
+    ============================================================ */
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+
+    .stat-box {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 8px;
+      padding: 9px 6px;
+      text-align: center;
+    }
+
+    .stat-n { font-size: 20px; font-weight: 700; line-height: 1; }
+    .stat-l { font-size: 9px; color: var(--gray-400); margin-top: 3px; text-transform: uppercase; letter-spacing: .4px; }
+
+    .cn-1 { color: var(--blue); }
+    .cn-2 { color: var(--green); }
+    .cn-3 { color: var(--orange); }
+
+    #stats-note { font-size: 11px; color: var(--gray-400); text-align: center; margin-top: 4px; }
+
+    /* ============================================================
+       LEGEND
+    ============================================================ */
+    .leg-item { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 12px; color: var(--gray-600); }
+
+    .leg-circle { width: 13px; height: 13px; border-radius: 50%; border: 2px solid rgba(0,0,0,.14); flex-shrink: 0; }
+
+    .info-tip {
+      margin-top: 6px;
+      padding: 8px 10px;
+      background: var(--gray-50);
+      border-radius: 8px;
+      font-size: 11px;
+      color: var(--gray-400);
+      line-height: 1.55;
+    }
+
+    /* ============================================================
+       DIVIDER
+    ============================================================ */
+    .hr { height: 1px; background: var(--gray-100); margin: 0 -14px; }
+
+    /* ============================================================
+       ERROR BANNER
+    ============================================================ */
+    #err-banner {
+      display: none;
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      color: #991B1B;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    /* ============================================================
+       TOGGLE PANEL BUTTON
+    ============================================================ */
+    #toggle-btn {
+      position: absolute;
+      top: 50%;
+      left: var(--panel-w);
+      transform: translateY(-50%);
+      z-index: 1001;
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-left: none;
+      border-radius: 0 8px 8px 0;
+      padding: 10px 5px;
+      cursor: pointer;
+      box-shadow: var(--shadow-md);
+      transition: left var(--ease);
+      color: var(--gray-500);
+      font-size: 11px;
+      line-height: 1;
+    }
+
+    #toggle-btn:hover { background: var(--gray-50); color: var(--blue); }
+
+    #panel.collapsed ~ #toggle-btn { left: 0; }
+
+    /* ============================================================
+       MAP AREA
+    ============================================================ */
+    #map-wrap { flex: 1; position: relative; min-width: 0; }
+
+    #map { width: 100%; height: 100%; }
+
+    /* ============================================================
+       FAB BUTTONS (Floating Action Buttons on map)
+    ============================================================ */
+    .fab-col {
+      position: absolute;
+      right: 12px;
+      bottom: 56px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 800;
+    }
+
+    .fab {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      border: 1px solid var(--gray-200);
+      background: var(--white);
+      box-shadow: var(--shadow-md);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      color: var(--gray-600);
+      transition: all var(--ease);
+    }
+
+    .fab:hover { background: var(--blue); color: var(--white); border-color: var(--blue); transform: scale(1.06); }
+    .fab.on { background: var(--blue); color: var(--white); border-color: var(--blue); }
+
+    /* ============================================================
+       LOADING OVERLAY
+    ============================================================ */
+    #loading {
+      position: fixed; inset: 0;
+      background: rgba(255,255,255,.92);
+      z-index: 9999;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 14px;
+    }
+
+    .spin {
+      width: 38px; height: 38px;
+      border: 3px solid var(--gray-200);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin .65s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #loading-msg { font-size: 13px; color: var(--gray-500); font-weight: 500; }
+
+    /* ============================================================
+       TOAST
+    ============================================================ */
+    #toast {
+      position: fixed;
+      bottom: 28px; left: 50%;
+      transform: translateX(-50%) translateY(50px);
+      background: var(--gray-800);
+      color: var(--white);
+      padding: 10px 20px;
+      border-radius: 24px;
+      font-size: 12px; font-weight: 500;
+      z-index: 9998;
+      opacity: 0;
+      transition: all .28s cubic-bezier(.34,1.56,.64,1);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ============================================================
+       POPUP STYLES
+    ============================================================ */
+    .leaflet-popup-content-wrapper {
+      border-radius: var(--radius) !important;
+      box-shadow: var(--shadow-lg) !important;
+      padding: 0 !important;
+      border: 1px solid var(--gray-200) !important;
+      overflow: hidden;
+    }
+
+    .leaflet-popup-content { margin: 0 !important; min-width: 230px; max-width: 290px; }
+
+    .leaflet-popup-tip-container { margin-top: -1px; }
+
+    .pu-head { padding: 11px 14px 9px; }
+    .pu-title { font-size: 14px; font-weight: 700; color: var(--white); line-height: 1.25; }
+    .pu-sub { font-size: 11px; color: rgba(255,255,255,.75); margin-top: 2px; }
+
+    .pu-body { padding: 9px 14px 6px; }
+
+    .pu-row {
+      display: flex; gap: 6px;
+      padding: 4px 0;
+      border-bottom: 1px solid var(--gray-100);
+      font-size: 12px;
+    }
+
+    .pu-row:last-of-type { border-bottom: none; }
+
+    .pu-k { color: var(--gray-400); min-width: 92px; font-weight: 500; flex-shrink: 0; }
+    .pu-v { color: var(--gray-800); font-weight: 600; word-break: break-word; }
+
+    .pu-foot {
+      display: flex; gap: 6px;
+      padding: 9px 14px;
+      border-top: 1px solid var(--gray-100);
+    }
+
+    .pu-btn {
+      flex: 1; padding: 8px 4px;
+      border-radius: 8px; border: none;
+      font-size: 11px; font-weight: 700;
+      cursor: pointer;
+      transition: all var(--ease);
+      display: flex; align-items: center; justify-content: center; gap: 4px;
+    }
+
+    .pu-nav { background: var(--blue); color: var(--white); }
+    .pu-nav:hover { background: var(--blue-hover); }
+
+    .pu-copy { background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-200); }
+    .pu-copy:hover { background: var(--gray-200); }
+
+    /* ============================================================
+       LEAFLET OVERRIDES
+    ============================================================ */
+    .leaflet-control-zoom { display: none !important; }
+    .leaflet-control-attribution { font-size: 9px !important; }
+
+    /* ============================================================
+       MOBILE  ≤ 640px
+    ============================================================ */
+    @media (max-width: 640px) {
+      :root { --panel-w: 100vw; }
+
+      #panel {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%;
+        height: auto;
+        max-height: 58vh;
+        border-radius: 0 0 14px 14px;
+        transform: translateY(0);
+        overflow: hidden;
+      }
+
+      #panel.collapsed { transform: translateY(-100%); }
+
+      #toggle-btn {
+        top: auto; bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        border-radius: 0 0 10px 10px;
+        border: 1px solid var(--gray-200);
+        border-top: none;
+        padding: 5px 22px;
+        font-size: 12px;
+        writing-mode: horizontal-tb;
+        white-space: nowrap;
+      }
+
+      #panel.collapsed ~ #toggle-btn {
+        top: 0; bottom: auto;
+        transform: translateX(-50%);
+        border-radius: 0 0 10px 10px;
+        border-top: none;
+      }
+
+      .fab-col { right: 8px; bottom: 72px; }
+      .stats-grid { grid-template-columns: repeat(3, 1fr); }
+
+      .leaflet-popup-content { min-width: 200px; max-width: calc(100vw - 56px); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="spin"></div>
+  <div id="loading-msg">Memuat data GeoJSON…</div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- =================== SIDEBAR =================== -->
+  <div id="panel">
+
+    <div id="panel-header">
+      <div class="header-top">
+        <div class="header-icon">📍</div>
+        <div>
+          <h1>WebGIS Titik BM</h1>
+          <p>Benchmark Geodesi — Blok Rokan</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-body">
+
+      <!-- ERROR -->
+      <div id="err-banner"></div>
+
+      <!-- SEARCH -->
+      <div>
+        <div class="sec-title">Cari Titik BM</div>
+        <div id="search-wrap">
+          <span id="search-icon">🔍</span>
+          <input type="text" id="search-input" placeholder="Nama BM atau Kecamatan…" autocomplete="off" spellcheck="false" />
+          <button id="search-clear" title="Hapus">✕</button>
+        </div>
+        <div id="search-dropdown"></div>
+      </div>
+
+      <!-- FILTER -->
+      <div>
+        <div class="sec-title">Filter</div>
+        <div class="filter-group">
+          <div>
+            <label class="filter-label">Kecamatan</label>
+            <select id="fil-kec" class="fsel">
+              <option value="">Semua Kecamatan</option>
+            </select>
+          </div>
+          <div>
+            <label class="filter-label">Orde</label>
+            <select id="fil-orde" class="fsel">
+              <option value="">Semua Orde</option>
+              <option value="1">ORDE 1</option>
+              <option value="2">ORDE 2</option>
+              <option value="3">ORDE 3</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <!-- LAYER TOGGLE -->
+      <div>
+        <div class="sec-title">Visibilitas Layer</div>
+        <label class="layer-row" for="chk-1">
+          <input type="checkbox" id="chk-1" checked />
+          <span class="layer-dot dot-1"></span>
+          <span class="layer-name">ORDE 1</span>
+          <span class="layer-cnt" id="cnt-1">0</span>
+        </label>
+        <label class="layer-row" for="chk-2">
+          <input type="checkbox" id="chk-2" checked />
+          <span class="layer-dot dot-2"></span>
+          <span class="layer-name">ORDE 2</span>
+          <span class="layer-cnt" id="cnt-2">0</span>
+        </label>
+        <label class="layer-row" for="chk-3">
+          <input type="checkbox" id="chk-3" checked />
+          <span class="layer-dot dot-3"></span>
+          <span class="layer-name">ORDE 3</span>
+          <span class="layer-cnt" id="cnt-3">0</span>
+        </label>
+      </div>
+
+      <div class="hr"></div>
+
+      <!-- BASEMAP -->
+      <div>
+        <div class="sec-title">Peta Dasar</div>
+        <div class="bmap-row">
+          <button class="bmap-btn active" id="bm-osm">🗺 OpenStreetMap</button>
+          <button class="bmap-btn" id="bm-sat">🛰 Satelit</button>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <!-- STATS -->
+      <div>
+        <div class="sec-title">Statistik</div>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-n cn-1" id="sn-1">—</div>
+            <div class="stat-l">Orde 1</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-n cn-2" id="sn-2">—</div>
+            <div class="stat-l">Orde 2</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-n cn-3" id="sn-3">—</div>
+            <div class="stat-l">Orde 3</div>
+          </div>
+        </div>
+        <p id="stats-note"></p>
+      </div>
+
+      <div class="hr"></div>
+
+      <!-- LEGEND -->
+      <div>
+        <div class="sec-title">Legenda</div>
+        <div class="leg-item">
+          <div class="leg-circle" style="background:var(--blue)"></div>
+          <span>ORDE 1 — Orde Pertama</span>
+        </div>
+        <div class="leg-item">
+          <div class="leg-circle" style="background:var(--green)"></div>
+          <span>ORDE 2 — Orde Kedua</span>
+        </div>
+        <div class="leg-item">
+          <div class="leg-circle" style="background:var(--orange)"></div>
+          <span>ORDE 3 — Orde Ketiga</span>
+        </div>
+        <div class="info-tip">
+          ℹ️ Tekan marker di peta untuk melihat informasi detail dan opsi navigasi.
+          <br>📍 Fitur lokasi memerlukan izin dari browser.
+        </div>
+      </div>
+
+    </div><!-- end panel-body -->
+  </div><!-- end panel -->
+
+  <!-- TOGGLE PANEL -->
+  <button id="toggle-btn" title="Buka/Tutup Panel">◀</button>
+
+  <!-- =================== MAP =================== -->
+  <div id="map-wrap">
+    <div id="map"></div>
+
+    <!-- FABs -->
+    <div class="fab-col">
+      <button class="fab" id="fab-locate" title="Lokasi Saya">📍</button>
+      <button class="fab" id="fab-in" title="Zoom In">＋</button>
+      <button class="fab" id="fab-out" title="Zoom Out">－</button>
+      <button class="fab" id="fab-fit" title="Fit ke Semua Data">⤢</button>
+    </div>
+  </div>
+
+</div><!-- end app -->
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script>
+(function () {
+  'use strict';
+
+  /* ──────────────────────────────────────────────────────────
+     DATASOURCE CONFIG
+     File di folder data/ masih berekstensi .json
+  ────────────────────────────────────────────────────────── */
+  const SOURCES = [
+    { path: 'data/ORDE_1.json', orde: 1, color: '#2563EB', label: 'ORDE 1' },
+    { path: 'data/ORDE_2.json', orde: 2, color: '#16A34A', label: 'ORDE 2' },
+    { path: 'data/ORDE_3.json', orde: 3, color: '#EA580C', label: 'ORDE 3' },
+  ];
+
+  /* ──────────────────────────────────────────────────────────
+     MARKER STYLES
+  ────────────────────────────────────────────────────────── */
+  const BASE_STYLE = { radius: 6, weight: 2, opacity: 1, fillOpacity: 0.85 };
+  const HL_STYLE   = { radius: 9, weight: 3, opacity: 1, fillOpacity: 1 };
+
+  /* ──────────────────────────────────────────────────────────
+     APPLICATION STATE
+  ────────────────────────────────────────────────────────── */
+  let fid_counter = 0;
+
+  const S = {
+    features:      [],           // all loaded features, flat array
+    markers:       new Map(),    // fid -> L.CircleMarker
+    groups:        {},           // orde -> L.LayerGroup
+    visible:       { 1: true, 2: true, 3: true },   // layer visibility
+    totals:        { 1: 0, 2: 0, 3: 0 },            // total per orde
+    filterKec:     '',
+    filterOrde:    '',
+    dataBounds:    null,
+    userMk:        null,         // user location marker
+    userCircle:    null,
+    highlighted:   null,         // currently highlighted circleMarker
+    basemap:       'osm',
+    located:       false,
+  };
+
+  /* ──────────────────────────────────────────────────────────
+     MAP INIT
+  ────────────────────────────────────────────────────────── */
+  const map = L.map('map', {
+    zoomControl: false,
+    attributionControl: true,
+    center: [1.0, 101.0],
+    zoom: 8,
+  });
+
+  const tiles = {
+    osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
+      maxZoom: 19,
+    }),
+    sat: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; <a href="https://www.esri.com/" target="_blank">Esri</a> — Esri, Maxar, Earthstar Geographics',
+      maxZoom: 19,
+    }),
+  };
+
+  tiles.osm.addTo(map);
+
+  // Create layer groups (added to map immediately so they sit above basemap)
+  SOURCES.forEach(src => {
+    S.groups[src.orde] = L.layerGroup().addTo(map);
+  });
+
+  /* ──────────────────────────────────────────────────────────
+     UTILITIES
+  ────────────────────────────────────────────────────────── */
+
+  // Escape for safe HTML output
+  function esc(v) {
+    return String(v)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // Return trimmed string or null
+  function clean(v) {
+    if (v === null || v === undefined) return null;
+    const s = String(v).trim();
+    if (s === '' || s === 'null' || s === 'undefined' || s === '0') return null;
+    // Skip single-space values common in this dataset
+    if (/^\s+$/.test(s)) return null;
+    return s;
+  }
+
+  // Format numeric with up to 4 decimal places
+  function fmtNum(v) {
+    const n = parseFloat(v);
+    if (isNaN(n)) return null;
+    return n.toFixed(4);
+  }
+
+  function showToast(msg, ms) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(el._tid);
+    el._tid = setTimeout(() => el.classList.remove('show'), ms || 2400);
+  }
+
+  function hideLoading() {
+    const el = document.getElementById('loading');
+    if (!el) return;
+    el.style.opacity = '0';
+    el.style.transition = 'opacity .3s';
+    setTimeout(() => el.remove(), 320);
+  }
+
+  function setLoadMsg(txt) {
+    const el = document.getElementById('loading-msg');
+    if (el) el.textContent = txt;
+  }
+
+  function showError(html) {
+    const el = document.getElementById('err-banner');
+    el.style.display = 'block';
+    el.innerHTML = '⚠️ ' + html;
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     LOAD GEOJSON FILES
+  ────────────────────────────────────────────────────────── */
+  async function loadAll() {
+    const latLngs = [];
+    const errors  = [];
+    let   loaded  = 0;
+
+    const jobs = SOURCES.map(async src => {
+      try {
+        setLoadMsg(`Memuat ${src.label}…`);
+        const res = await fetch(src.path);
+        if (!res.ok) throw new Error(`HTTP ${res.status} – ${res.statusText}`);
+        const gj = await res.json();
+
+        if (!gj || gj.type !== 'FeatureCollection' || !Array.isArray(gj.features)) {
+          throw new Error('Bukan FeatureCollection yang valid');
+        }
+
+        gj.features.forEach(feat => {
+          if (!feat || !feat.geometry) return;
+          const coords = feat.geometry.coordinates;
+          // Skip empty or invalid coordinates
+          if (!Array.isArray(coords) || coords.length < 2) return;
+          const lng = coords[0];
+          const lat = coords[1];
+          if (!isFinite(lat) || !isFinite(lng)) return;
+          if (lat === 0 && lng === 0) return; // skip null island
+
+          feat._fid   = ++fid_counter;
+          feat._orde  = src.orde;
+          feat._color = src.color;
+          feat._label = src.label;
+
+          S.features.push(feat);
+          S.totals[src.orde]++;
+          latLngs.push([lat, lng]);
+
+          addMarker(feat, lat, lng, src);
+        });
+
+        loaded++;
+      } catch (err) {
+        console.error(`[WebGIS] Gagal memuat ${src.path}:`, err);
+        errors.push(`<strong>${src.label}</strong>: ${esc(err.message)}`);
+      }
+    });
+
+    await Promise.all(jobs);
+
+    // Fit bounds to loaded data
+    if (latLngs.length > 0) {
+      S.dataBounds = L.latLngBounds(latLngs);
+      map.fitBounds(S.dataBounds, { padding: [40, 40] });
+    }
+
+    buildKecFilter();
+    updateAll();
+
+    if (errors.length) {
+      showError(
+        'Beberapa file gagal dimuat:<br>' + errors.join('<br>') +
+        '<br><small>Pastikan app diakses via server (bukan file://), ' +
+        'dan file ada di folder <code>data/</code>.</small>'
+      );
+    }
+
+    if (loaded === 0) {
+      showError(
+        'Tidak ada data yang berhasil dimuat. ' +
+        'Jalankan aplikasi melalui server lokal atau Vercel, ' +
+        'bukan dengan membuka file:// langsung di browser.'
+      );
+    }
+
+    hideLoading();
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     CREATE CIRCLE MARKER
+  ────────────────────────────────────────────────────────── */
+  function addMarker(feat, lat, lng, src) {
+    const mk = L.circleMarker([lat, lng], {
+      ...BASE_STYLE,
+      color:     src.color,
+      fillColor: src.color,
+    });
+
+    mk._fid     = feat._fid;
+    mk._feature = feat;
+
+    mk.on('click', () => openPopup(feat, mk));
+
+    S.markers.set(feat._fid, mk);
+    S.groups[src.orde].addLayer(mk);
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     FILTER LOGIC
+  ────────────────────────────────────────────────────────── */
+  function featureVisible(feat) {
+    const orde = feat._orde;
+    // Layer toggle
+    if (!S.visible[orde]) return false;
+    // Orde filter
+    if (S.filterOrde !== '' && String(orde) !== S.filterOrde) return false;
+    // Kecamatan filter
+    if (S.filterKec !== '') {
+      const k = clean((feat.properties || {}).Kecamatan);
+      if (!k || k.toLowerCase() !== S.filterKec.toLowerCase()) return false;
+    }
+    return true;
+  }
+
+  function applyFilters() {
+    let vis = 0;
+    S.features.forEach(feat => {
+      const mk   = S.markers.get(feat._fid);
+      if (!mk) return;
+      const show = featureVisible(feat);
+      if (show) {
+        if (!S.groups[feat._orde].hasLayer(mk)) S.groups[feat._orde].addLayer(mk);
+        vis++;
+      } else {
+        if (S.groups[feat._orde].hasLayer(mk)) S.groups[feat._orde].removeLayer(mk);
+      }
+    });
+    updateStats(vis);
+    updateCounts();
+  }
+
+  function updateAll() {
+    applyFilters();
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     STATS & COUNTS
+  ────────────────────────────────────────────────────────── */
+  function updateStats(visibleCount) {
+    document.getElementById('sn-1').textContent = S.totals[1] || 0;
+    document.getElementById('sn-2').textContent = S.totals[2] || 0;
+    document.getElementById('sn-3').textContent = S.totals[3] || 0;
+    const total = S.features.length;
+    const note  = document.getElementById('stats-note');
+    if (visibleCount !== undefined && visibleCount !== total) {
+      note.textContent = `Menampilkan ${visibleCount} dari ${total} titik`;
+    } else {
+      note.textContent = `Total: ${total} titik BM`;
+    }
+  }
+
+  function updateCounts() {
+    [1, 2, 3].forEach(o => {
+      const n = S.features.filter(f => f._orde === o && featureVisible(f)).length;
+      const el = document.getElementById(`cnt-${o}`);
+      if (el) el.textContent = n;
+    });
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     KECAMATAN FILTER
+  ────────────────────────────────────────────────────────── */
+  function buildKecFilter() {
+    const seen = new Set();
+    const vals = [];
+    S.features.forEach(f => {
+      const k = clean((f.properties || {}).Kecamatan);
+      if (k) {
+        const key = k.toLowerCase();
+        if (!seen.has(key)) { seen.add(key); vals.push(k); }
+      }
+    });
+    vals.sort((a, b) => a.localeCompare(b, 'id'));
+    const sel = document.getElementById('fil-kec');
+    vals.forEach(v => {
+      const o = document.createElement('option');
+      o.value = v; o.textContent = v;
+      sel.appendChild(o);
+    });
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     POPUP
+  ────────────────────────────────────────────────────────── */
+  function openPopup(feat, mk) {
+    const p    = feat.properties || {};
+    const coords = feat.geometry.coordinates;
+    const lng = coords[0];
+    const lat = coords[1];
+
+    highlightMk(mk, feat._color);
+
+    function row(label, rawVal, formatter) {
+      let val = clean(rawVal);
+      if (!val) return '';
+      if (formatter) val = formatter(val) || val;
+      return `<div class="pu-row">
+        <span class="pu-k">${label}</span>
+        <span class="pu-v">${esc(val)}</span>
+      </div>`;
+    }
+
+    const badgeCls = `badge-${feat._orde}`;
+    const headColor = feat._color;
+
+    const html = `
+      <div class="pu-head" style="background:${headColor}">
+        <div class="pu-title">${esc(clean(p.Nama_BM) || clean(p.ID_Banchma) || '(Tanpa Nama)')}</div>
+        <div class="pu-sub">
+          ${esc(feat._label)}
+          ${clean(p.Kecamatan) ? ' &bull; ' + esc(clean(p.Kecamatan)) : ''}
+        </div>
+      </div>
+      <div class="pu-body">
+        ${row('Lokasi',          p.Lokasi)}
+        ${row('Desa',            p.Desa)}
+        ${row('Kecamatan',       p.Kecamatan)}
+        ${row('Kabupaten',       p.Kabupaten)}
+        ${row('Northing (m)',    p.Northing__, fmtNum)}
+        ${row('Easting (m)',     p.Easting__m, fmtNum)}
+        ${row('Tinggi Elipsoid', p.Ellip_Heig, v => parseFloat(v).toFixed(3) + ' m')}
+        ${row('Tingkatan/Orde',  p.Tingkatan || feat._label)}
+        ${row('Koordinat',       lat.toFixed(6) + ', ' + lng.toFixed(6))}
+      </div>
+      <div class="pu-foot">
+        <button class="pu-btn pu-nav" onclick="gNav(${lat},${lng})">🧭 Navigasi</button>
+        <button class="pu-btn pu-copy" onclick="gCopy(${lat},${lng})">📋 Salin Koord.</button>
+      </div>
+    `;
+
+    mk.bindPopup(html, { maxWidth: 300, className: 'bm-popup' }).openPopup();
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     HIGHLIGHT MARKER
+  ────────────────────────────────────────────────────────── */
+  function highlightMk(mk, color) {
+    if (S.highlighted && S.highlighted !== mk) {
+      const prev = S.highlighted;
+      const c    = prev._feature._color;
+      prev.setStyle({ ...BASE_STYLE, color: c, fillColor: c });
+    }
+    mk.setStyle({ ...HL_STYLE, color: '#0F172A', fillColor: color });
+    S.highlighted = mk;
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     GLOBAL POPUP HANDLERS (called from inline HTML)
+  ────────────────────────────────────────────────────────── */
+  window.gNav = function (lat, lng) {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&dir_action=navigate`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  window.gCopy = function (lat, lng) {
+    const text = `${lat}, ${lng}`;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text)
+        .then(() => showToast('✅ Disalin: ' + text))
+        .catch(() => fallbackCopy(text));
+    } else {
+      fallbackCopy(text);
+    }
+  };
+
+  function fallbackCopy(text) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast(ok ? '✅ Disalin: ' + text : '❌ Tidak dapat menyalin otomatis');
+    } catch (e) {
+      showToast('❌ Salin manual: ' + text, 5000);
+    }
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     SEARCH
+  ────────────────────────────────────────────────────────── */
+  function getVisibleFeatures() {
+    return S.features.filter(featureVisible);
+  }
+
+  function doSearch(q) {
+    const dd = document.getElementById('search-dropdown');
+    if (!q.trim()) { dd.style.display = 'none'; return; }
+
+    const lq    = q.toLowerCase();
+    const pool  = getVisibleFeatures();
+    const hits  = pool.filter(f => {
+      const p   = f.properties || {};
+      const nm  = (clean(p.Nama_BM) || '').toLowerCase();
+      const idb = (clean(p.ID_Banchma) || '').toLowerCase();
+      const kec = (clean(p.Kecamatan) || '').toLowerCase();
+      return nm.includes(lq) || idb.includes(lq) || kec.includes(lq);
+    }).slice(0, 60);
+
+    if (!hits.length) {
+      dd.innerHTML = '<div class="sr-empty">Tidak ada hasil yang cocok</div>';
+    } else {
+      dd.innerHTML = hits.map(f => {
+        const p    = f.properties || {};
+        const nm   = esc(clean(p.Nama_BM) || clean(p.ID_Banchma) || '(Tanpa Nama)');
+        const kec  = esc(clean(p.Kecamatan) || '—');
+        const bc   = `badge-${f._orde}`;
+        return `<div class="sr-item" data-fid="${f._fid}">
+          <div class="sr-name">${nm}</div>
+          <div class="sr-meta">${kec}<span class="sr-badge ${bc}">${esc(f._label)}</span></div>
+        </div>`;
+      }).join('');
+
+      dd.querySelectorAll('.sr-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const fid = parseInt(el.dataset.fid);
+          flyTo(fid);
+          dd.style.display = 'none';
+          document.getElementById('search-input').value = el.querySelector('.sr-name').textContent;
+          document.getElementById('search-clear').style.display = 'block';
+        });
+      });
+    }
+
+    dd.style.display = 'block';
+  }
+
+  function flyTo(fid) {
+    const feat = S.features.find(f => f._fid === fid);
+    if (!feat) return;
+    const [lng, lat] = feat.geometry.coordinates;
+    const mk = S.markers.get(fid);
+    map.flyTo([lat, lng], Math.max(map.getZoom(), 15), { duration: 0.9 });
+    if (mk) {
+      setTimeout(() => highlightMk(mk, feat._color), 500);
+    }
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     USER LOCATION
+  ────────────────────────────────────────────────────────── */
+  document.getElementById('fab-locate').addEventListener('click', () => {
+    if (!navigator.geolocation) {
+      showToast('❌ Perangkat tidak mendukung geolokasi'); return;
+    }
+    if (S.located && S.userMk) {
+      map.setView(S.userMk.getLatLng(), 15); return;
+    }
+    showToast('📍 Mencari lokasi…');
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+        if (S.userCircle) {
+          S.userCircle.setLatLng([lat, lng]).setRadius(accuracy);
+          S.userMk.setLatLng([lat, lng]);
+        } else {
+          S.userCircle = L.circle([lat, lng], {
+            radius: accuracy,
+            color: '#7C3AED', fillColor: '#7C3AED',
+            fillOpacity: 0.1, weight: 1,
+          }).addTo(map);
+
+          S.userMk = L.circleMarker([lat, lng], {
+            radius: 8,
+            color: '#FFFFFF', fillColor: '#7C3AED',
+            fillOpacity: 1, weight: 3,
+          }).addTo(map).bindTooltip('Lokasi Anda', { direction: 'top' });
+        }
+        map.flyTo([lat, lng], 15);
+        S.located = true;
+        document.getElementById('fab-locate').classList.add('on');
+        showToast('✅ Lokasi ditemukan');
+      },
+      err => {
+        const msgs = {
+          1: '❌ Izin lokasi ditolak. Aktifkan di pengaturan browser.',
+          2: '❌ Posisi tidak tersedia saat ini.',
+          3: '❌ Permintaan lokasi terlalu lama.',
+        };
+        showToast(msgs[err.code] || '❌ Gagal mendapatkan lokasi', 3500);
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
+    );
+  });
+
+  /* ──────────────────────────────────────────────────────────
+     PANEL TOGGLE
+  ────────────────────────────────────────────────────────── */
+  const panel     = document.getElementById('panel');
+  const toggleBtn = document.getElementById('toggle-btn');
+  let panelOpen   = true;
+
+  function syncToggleLabel() {
+    if (window.innerWidth <= 640) {
+      toggleBtn.textContent = panelOpen ? '▲ Tutup' : '▼ Buka Panel';
+    } else {
+      toggleBtn.textContent = panelOpen ? '◀' : '▶';
+    }
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    panelOpen = !panelOpen;
+    panel.classList.toggle('collapsed', !panelOpen);
+    syncToggleLabel();
+    setTimeout(() => map.invalidateSize(), 250);
+  });
+
+  window.addEventListener('resize', () => {
+    syncToggleLabel();
+    setTimeout(() => map.invalidateSize(), 80);
+  });
+
+  /* ──────────────────────────────────────────────────────────
+     BASEMAP SWITCHER
+  ────────────────────────────────────────────────────────── */
+  function switchBase(to) {
+    if (S.basemap === to) return;
+    const from = S.basemap;
+    map.removeLayer(tiles[from]);
+    tiles[to].addTo(map);
+    tiles[to].bringToBack();
+    S.basemap = to;
+    document.getElementById('bm-osm').classList.toggle('active', to === 'osm');
+    document.getElementById('bm-sat').classList.toggle('active', to === 'sat');
+  }
+
+  document.getElementById('bm-osm').addEventListener('click', () => switchBase('osm'));
+  document.getElementById('bm-sat').addEventListener('click', () => switchBase('sat'));
+
+  /* ──────────────────────────────────────────────────────────
+     LAYER CHECKBOXES
+  ────────────────────────────────────────────────────────── */
+  [1, 2, 3].forEach(o => {
+    document.getElementById(`chk-${o}`).addEventListener('change', function () {
+      S.visible[o] = this.checked;
+      applyFilters();
+    });
+  });
+
+  /* ──────────────────────────────────────────────────────────
+     FILTER SELECTS
+  ────────────────────────────────────────────────────────── */
+  document.getElementById('fil-kec').addEventListener('change', function () {
+    S.filterKec = this.value;
+    applyFilters();
+    const q = document.getElementById('search-input').value;
+    if (q) doSearch(q);
+  });
+
+  document.getElementById('fil-orde').addEventListener('change', function () {
+    S.filterOrde = this.value;
+    applyFilters();
+    const q = document.getElementById('search-input').value;
+    if (q) doSearch(q);
+  });
+
+  /* ──────────────────────────────────────────────────────────
+     SEARCH INPUT
+  ────────────────────────────────────────────────────────── */
+  const searchInput = document.getElementById('search-input');
+  const searchClear = document.getElementById('search-clear');
+  const searchDD    = document.getElementById('search-dropdown');
+  let   srTimer;
+
+  searchInput.addEventListener('input', function () {
+    const q = this.value;
+    searchClear.style.display = q ? 'block' : 'none';
+    clearTimeout(srTimer);
+    srTimer = setTimeout(() => doSearch(q), 180);
+  });
+
+  searchClear.addEventListener('click', () => {
+    searchInput.value = '';
+    searchClear.style.display = 'none';
+    searchDD.style.display = 'none';
+    searchInput.focus();
+  });
+
+  document.addEventListener('click', e => {
+    if (!document.getElementById('search-wrap').contains(e.target)) {
+      searchDD.style.display = 'none';
+    }
+  });
+
+  /* ──────────────────────────────────────────────────────────
+     MAP FAB BUTTONS
+  ────────────────────────────────────────────────────────── */
+  document.getElementById('fab-in').addEventListener('click',  () => map.zoomIn());
+  document.getElementById('fab-out').addEventListener('click', () => map.zoomOut());
+  document.getElementById('fab-fit').addEventListener('click', () => {
+    if (S.dataBounds) map.fitBounds(S.dataBounds, { padding: [40, 40] });
+    else showToast('Belum ada data yang dimuat');
+  });
+
+  /* ──────────────────────────────────────────────────────────
+     RESET HIGHLIGHT ON MAP CLICK
+  ────────────────────────────────────────────────────────── */
+  map.on('click', () => {
+    if (S.highlighted) {
+      const c = S.highlighted._feature._color;
+      S.highlighted.setStyle({ ...BASE_STYLE, color: c, fillColor: c });
+      S.highlighted = null;
+    }
+  });
+
+  /* ──────────────────────────────────────────────────────────
+     KICK OFF
+  ────────────────────────────────────────────────────────── */
+  loadAll();
+
+})();
+</script>
+</body>
+</html>
