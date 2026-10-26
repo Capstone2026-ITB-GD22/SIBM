@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/webgis", "destination": "/webgis.html" }
+  ]
+}
