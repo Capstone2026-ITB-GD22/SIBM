@@ -1,2104 +1,1425 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0F172A" />
-  <title>Benchmark Locator — PTSI</title>
-  <link rel="icon" type="image/jpeg" href="logoptsi.jpg" />
-
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <style>
-    /* ================================================================
-       TOKENS
-    ================================================================ */
-    :root {
-      /* Brand */
-      --accent:        #2563EB;
-      --accent-dark:   #1D4ED8;
-      --accent-xdark:  #1E3A8A;
-      --accent-light:  #EFF6FF;
-      --accent-glow:   rgba(37,99,235,.18);
-
-      /* Layer colours */
-      --c1: #3B82F6;   /* orde 1 – blue */
-      --c2: #22C55E;   /* orde 2 – green */
-      --c3: #F97316;   /* orde 3 – orange */
-      --cw: #8B5CF6;   /* well   – purple */
-
-      /* Neutrals */
-      --white:     #FFFFFF;
-      --surface:   #F8FAFC;
-      --surface2:  #F1F5F9;
-      --border:    #E2E8F0;
-      --border2:   #CBD5E1;
-      --muted:     #94A3B8;
-      --body:      #475569;
-      --heading:   #0F172A;
-
-      /* Shadows */
-      --sh-xs: 0 1px 2px rgba(0,0,0,.06);
-      --sh-sm: 0 2px 8px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
-      --sh-md: 0 4px 16px rgba(0,0,0,.10), 0 1px 4px rgba(0,0,0,.06);
-      --sh-lg: 0 12px 32px rgba(0,0,0,.12), 0 4px 8px rgba(0,0,0,.06);
-      --sh-xl: 0 20px 48px rgba(0,0,0,.16), 0 6px 12px rgba(0,0,0,.06);
-
-      /* Layout */
-      --panel-w:   320px;
-      --radius-sm: 6px;
-      --radius:    10px;
-      --radius-lg: 14px;
-      --radius-xl: 18px;
-
-      /* Motion */
-      --dur-fast:  120ms;
-      --dur:       200ms;
-      --dur-slow:  320ms;
-      --ease-out:  cubic-bezier(.2,.8,.4,1);
-      --ease-spring: cubic-bezier(.34,1.56,.64,1);
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      :root {
-        --dur-fast: 0ms; --dur: 0ms; --dur-slow: 0ms;
-        --ease-spring: linear;
-      }
-    }
-
-    /* ================================================================
-       RESET
-    ================================================================ */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html, body {
-      height: 100%; width: 100%;
-      overflow: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
-      font-size: 14px;
-      line-height: 1.5;
-      color: var(--body);
-      background: var(--heading);
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    button { font-family: inherit; cursor: pointer; }
-    input, select { font-family: inherit; }
-
-    /* ================================================================
-       APP SHELL
-    ================================================================ */
-    #app {
-      display: flex;
-      height: 100dvh;
-      width: 100vw;
-      position: relative;
-      overflow: hidden;
-    }
-
-    /* ================================================================
-       SIDEBAR — DESKTOP
-    ================================================================ */
-    #panel {
-      width: var(--panel-w);
-      height: 100%;
-      background: var(--white);
-      display: flex;
-      flex-direction: column;
-      z-index: 500;
-      flex-shrink: 0;
-      transition: transform var(--dur-slow) var(--ease-out);
-      position: relative;
-    }
-
-    #panel.collapsed {
-      transform: translateX(calc(-1 * var(--panel-w)));
-    }
-
-    /* ---- Panel Header ---- */
-    #panel-header {
-      background: var(--heading);
-      padding: 18px 18px 16px;
-      flex-shrink: 0;
-      position: relative;
-      overflow: hidden;
-    }
-
-    /* decorative accent line */
-    #panel-header::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--accent) 0%, var(--c2) 50%, var(--c3) 100%);
-    }
-
-    .ph-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .ph-logo {
-      width: 36px; height: 36px;
-      border-radius: 8px;
-      overflow: hidden;
-      background: var(--white);
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,.25);
-      flex-shrink: 0;
-      border: 1px solid rgba(255,255,255,.2);
-    }
-
-    .ph-logo img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .ph-text h1 {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--white);
-      letter-spacing: -.2px;
-    }
-
-    .ph-text p {
-      font-size: 11px;
-      color: rgba(255,255,255,.5);
-      margin-top: 1px;
-      letter-spacing: .1px;
-    }
-
-    /* back-to-home link in header */
-    .ph-back {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 10px;
-      font-weight: 600;
-      color: rgba(255,255,255,.5);
-      text-decoration: none;
-      padding: 4px 8px;
-      border-radius: var(--radius-sm);
-      border: 1px solid rgba(255,255,255,.12);
-      transition: background var(--dur-fast), color var(--dur-fast);
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-    .ph-back:hover { background: rgba(255,255,255,.1); color: var(--white); }
-    .ph-back svg { width: 10px; height: 10px; }
-
-    /* ---- Panel Body ---- */
-    #panel-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 14px 16px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      overscroll-behavior: contain;
-    }
-
-    #panel-body::-webkit-scrollbar { width: 3px; }
-    #panel-body::-webkit-scrollbar-track { background: transparent; }
-    #panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
-
-    /* ================================================================
-       SECTION GROUPS
-    ================================================================ */
-    .section { display: flex; flex-direction: column; gap: 8px; }
-
-    .sec-label {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .sec-label::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
-    /* subsection label inside a section */
-    .subsec-label {
-      font-size: 9px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .8px;
-      color: var(--border2);
-      padding: 0 2px;
-    }
-
-    /* ================================================================
-       SEARCH
-    ================================================================ */
-    #search-wrap { position: relative; }
-
-    #search-input {
-      width: 100%;
-      padding: 10px 36px 10px 38px;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      font-size: 13px;
-      background: var(--surface);
-      color: var(--heading);
-      outline: none;
-      transition:
-        border-color var(--dur) var(--ease-out),
-        box-shadow var(--dur) var(--ease-out),
-        background var(--dur) var(--ease-out);
-    }
-
-    #search-input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-glow);
-      background: var(--white);
-    }
-
-    #search-input::placeholder { color: var(--muted); }
-
-    #search-icon-svg {
-      position: absolute;
-      left: 11px; top: 50%;
-      transform: translateY(-50%);
-      width: 16px; height: 16px;
-      color: var(--muted);
-      pointer-events: none;
-      flex-shrink: 0;
-    }
-
-    #search-clear {
-      position: absolute;
-      right: 8px; top: 50%;
-      transform: translateY(-50%);
-      width: 24px; height: 24px;
-      border-radius: 50%;
-      border: none;
-      background: var(--border);
-      color: var(--body);
-      font-size: 11px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      transition: background var(--dur-fast), color var(--dur-fast);
-    }
-
-    #search-clear:hover { background: var(--border2); color: var(--heading); }
-
-    /* Search Dropdown */
-    #search-dropdown {
-      display: none;
-      background: var(--white);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--sh-lg);
-      max-height: 230px;
-      overflow-y: auto;
-      margin-top: 5px;
-      animation: dropIn var(--dur) var(--ease-out);
-    }
-
-    @keyframes dropIn {
-      from { opacity: 0; transform: translateY(-4px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    #search-dropdown::-webkit-scrollbar { width: 3px; }
-    #search-dropdown::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
-
-    .sr-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      cursor: pointer;
-      border-bottom: 1px solid var(--surface2);
-      transition: background var(--dur-fast);
-      user-select: none;
-    }
-
-    .sr-item:last-child { border-bottom: none; }
-    .sr-item:hover, .sr-item:focus { background: var(--accent-light); outline: none; }
-    .sr-item:active { background: #DBEAFE; }
-
-    .sr-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      border: 1.5px solid rgba(0,0,0,.15);
-    }
-
-    .sr-info { flex: 1; min-width: 0; }
-    .sr-name { font-size: 12px; font-weight: 600; color: var(--heading); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .sr-meta { font-size: 10px; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    .sr-badge {
-      font-size: 9px; font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 99px;
-      flex-shrink: 0;
-      text-transform: uppercase;
-      letter-spacing: .4px;
-    }
-
-    .badge-1 { background: rgba(59,130,246,.12); color: var(--c1); }
-    .badge-2 { background: rgba(34,197,94,.12);  color: #16A34A; }
-    .badge-3 { background: rgba(249,115,22,.12); color: #EA580C; }
-    .badge-w { background: rgba(139,92,246,.12); color: #7C3AED; }
-
-    .sr-empty {
-      padding: 18px 12px;
-      text-align: center;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .sr-empty-icon { font-size: 24px; margin-bottom: 6px; }
-
-    /* ================================================================
-       FILTER GROUP
-    ================================================================ */
-    .filter-row { display: flex; flex-direction: column; gap: 6px; }
-
-    .filter-lbl {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--body);
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    select.fsel {
-      width: 100%;
-      padding: 9px 32px 9px 11px;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-size: 12px;
-      background: var(--surface);
-      color: var(--heading);
-      cursor: pointer;
-      outline: none;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394A3B8' d='M6 8.5L1.5 4h9z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 10px center;
-      transition: border-color var(--dur), box-shadow var(--dur);
-    }
-
-    select.fsel:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
-
-    /* Reset filter button */
-    #btn-reset-filter {
-      display: none;
-      align-items: center;
-      gap: 5px;
-      padding: 6px 10px;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      background: var(--surface);
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--body);
-      cursor: pointer;
-      transition: all var(--dur-fast);
-      width: 100%;
-      justify-content: center;
-    }
-
-    #btn-reset-filter:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
-    #btn-reset-filter.visible { display: flex; }
-
-    /* ================================================================
-       LAYER TOGGLES  — custom pill toggle
-    ================================================================ */
-    .layer-list { display: flex; flex-direction: column; gap: 2px; }
-
-    .layer-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 10px;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      user-select: none;
-      transition: background var(--dur-fast);
-      position: relative;
-    }
-
-    .layer-row:hover { background: var(--surface); }
-
-    /* hide native checkbox */
-    .layer-row input[type="checkbox"] {
-      position: absolute;
-      opacity: 0; width: 0; height: 0;
-    }
-
-    /* pill toggle */
-    .layer-toggle-pill {
-      width: 32px; height: 18px;
-      border-radius: 99px;
-      background: var(--border2);
-      position: relative;
-      flex-shrink: 0;
-      transition: background var(--dur);
-    }
-
-    .layer-toggle-pill::after {
-      content: '';
-      position: absolute;
-      top: 2px; left: 2px;
-      width: 14px; height: 14px;
-      border-radius: 50%;
-      background: var(--white);
-      box-shadow: var(--sh-xs);
-      transition: transform var(--dur) var(--ease-spring);
-    }
-
-    .layer-row input:checked ~ .layer-toggle-pill { background: var(--accent); }
-    .layer-row input:checked ~ .layer-toggle-pill::after { transform: translateX(14px); }
-
-    .layer-swatch {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      border: 2px solid rgba(0,0,0,.12);
-      flex-shrink: 0;
-    }
-
-    .sw-1 { background: var(--c1); }
-    .sw-2 { background: var(--c2); }
-    .sw-3 { background: var(--c3); }
-    .sw-w { background: var(--cw); }
-
-    .layer-name { flex: 1; font-size: 13px; font-weight: 500; color: var(--heading); }
-
-    .layer-cnt {
-      font-size: 11px;
-      color: var(--muted);
-      background: var(--surface2);
-      padding: 1px 8px;
-      border-radius: 99px;
-      font-variant-numeric: tabular-nums;
-      min-width: 28px;
-      text-align: center;
-    }
-
-    /* separator between layer subsections */
-    .layer-divider {
-      height: 1px;
-      background: var(--border);
-      margin: 4px 0;
-    }
-
-    /* ================================================================
-       BASEMAP SWITCHER
-    ================================================================ */
-    .bmap-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-    }
-
-    .bmap-btn {
-      padding: 8px 6px;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      background: var(--surface);
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--body);
-      cursor: pointer;
-      transition: all var(--dur);
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-    }
-
-    .bmap-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
-
-    .bmap-btn.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: var(--white);
-      box-shadow: 0 2px 8px rgba(37,99,235,.3);
-    }
-
-    /* ================================================================
-       STATS STRIP
-    ================================================================ */
-    .stats-strip {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 5px;
-    }
-
-    .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 8px 6px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    /* coloured top accent */
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-    }
-
-    .stat-card.s1::before { background: var(--c1); }
-    .stat-card.s2::before { background: var(--c2); }
-    .stat-card.s3::before { background: var(--c3); }
-    .stat-card.sw::before { background: var(--cw); }
-
-    .stat-n {
-      font-size: 18px;
-      font-weight: 800;
-      line-height: 1;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .s1 .stat-n { color: var(--c1); }
-    .s2 .stat-n { color: #16A34A; }
-    .s3 .stat-n { color: #EA580C; }
-    .sw .stat-n { color: #7C3AED; }
-
-    .stat-l {
-      font-size: 8px;
-      color: var(--muted);
-      margin-top: 3px;
-      text-transform: uppercase;
-      letter-spacing: .5px;
-      font-weight: 600;
-    }
-
-    #stats-note {
-      font-size: 11px;
-      color: var(--muted);
-      text-align: center;
-      padding: 2px 0;
-    }
-
-    /* ================================================================
-       LEGEND
-    ================================================================ */
-    .leg-list { display: flex; flex-direction: column; gap: 4px; }
-
-    .leg-item {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      padding: 5px 8px;
-      border-radius: var(--radius-sm);
-      font-size: 12px;
-      color: var(--body);
-    }
-
-    .leg-dot {
-      width: 12px; height: 12px;
-      border-radius: 50%;
-      border: 2px solid rgba(0,0,0,.12);
-      flex-shrink: 0;
-    }
-
-    .leg-label { flex: 1; font-weight: 500; }
-    .leg-desc { font-size: 10px; color: var(--muted); }
-
-    .info-chip {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      padding: 9px 10px;
-      background: var(--accent-light);
-      border: 1px solid rgba(37,99,235,.15);
-      border-radius: var(--radius-sm);
-      font-size: 11px;
-      color: #1D4ED8;
-      line-height: 1.5;
-    }
-
-    /* ================================================================
-       ERROR BANNER
-    ================================================================ */
-    #err-banner {
-      display: none;
-      padding: 10px 12px;
-      background: #FEF2F2;
-      border: 1px solid #FECACA;
-      border-radius: var(--radius-sm);
-      color: #991B1B;
-      font-size: 12px;
-      line-height: 1.6;
-    }
-
-    /* ================================================================
-       TOGGLE BUTTON — desktop tab on panel edge
-    ================================================================ */
-    #toggle-btn {
-      position: absolute;
-      top: 50%;
-      left: var(--panel-w);
-      z-index: 501;
-      transform: translateY(-50%);
-      width: 22px;
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-left: none;
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      padding: 14px 4px;
-      cursor: pointer;
-      box-shadow: 3px 0 12px rgba(0,0,0,.08);
-      transition: left var(--dur-slow) var(--ease-out), background var(--dur-fast);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-    }
-
-    #toggle-btn:hover { background: var(--surface); }
-
-    .tb-chevron {
-      width: 12px; height: 12px;
-      color: var(--muted);
-      transition: transform var(--dur) var(--ease-out), color var(--dur-fast);
-      flex-shrink: 0;
-    }
-
-    #panel.collapsed ~ #toggle-btn { left: 0; }
-    #panel.collapsed ~ #toggle-btn .tb-chevron { transform: rotate(180deg); }
-
-    #toggle-btn:hover .tb-chevron { color: var(--accent); }
-
-    /* ================================================================
-       MAP AREA
-    ================================================================ */
-    #map-wrap { flex: 1; position: relative; min-width: 0; overflow: hidden; }
-    #map { width: 100%; height: 100%; }
-
-    /* ================================================================
-       FAB GROUP — floating map controls
-    ================================================================ */
-    .fab-col {
-      position: absolute;
-      right: 14px;
-      bottom: 64px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      z-index: 400;
-    }
-
-    .fab {
-      width: 40px; height: 40px;
-      border-radius: var(--radius-sm);
-      border: 1px solid rgba(255,255,255,.9);
-      background: var(--white);
-      box-shadow: var(--sh-md);
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      color: var(--body);
-      transition: all var(--dur-fast);
-      position: relative;
-    }
-
-    .fab svg { width: 18px; height: 18px; }
-
-    .fab:hover { background: var(--accent); color: var(--white); border-color: var(--accent); box-shadow: 0 4px 16px rgba(37,99,235,.35); }
-    .fab:active { transform: scale(.94); }
-    .fab.on { background: var(--accent); color: var(--white); border-color: var(--accent); }
-
-    /* Zoom group visual divider */
-    .fab-zoom-grp {
-      display: flex;
-      flex-direction: column;
-      border-radius: var(--radius-sm);
-      overflow: hidden;
-      box-shadow: var(--sh-md);
-    }
-
-    .fab-zoom-grp .fab {
-      border-radius: 0;
-      box-shadow: none;
-      border: 1px solid var(--border);
-      border-bottom: none;
-    }
-
-    .fab-zoom-grp .fab:last-child { border-bottom: 1px solid var(--border); }
-    .fab-zoom-grp .fab:hover { z-index: 1; }
-
-    /* ================================================================
-       LOADING OVERLAY
-    ================================================================ */
-    #loading {
-      position: fixed; inset: 0;
-      background: var(--heading);
-      z-index: 9999;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 16px;
-    }
-
-    .ld-logo {
-      width: 60px; height: 60px;
-      border-radius: 14px;
-      overflow: hidden;
-      background: var(--white);
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 8px 24px rgba(0,0,0,.35);
-      margin-bottom: 4px;
-      border: 1px solid rgba(255,255,255,.2);
-    }
-
-    .ld-logo img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .ld-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--white);
-      letter-spacing: -.3px;
-    }
-
-    .ld-bar {
-      width: 180px; height: 3px;
-      background: rgba(255,255,255,.12);
-      border-radius: 99px;
-      overflow: hidden;
-    }
-
-    .ld-bar-inner {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent), var(--c2));
-      border-radius: 99px;
-      animation: loadpulse 1.4s ease-in-out infinite;
-    }
-
-    @keyframes loadpulse {
-      0%   { width: 0%; margin-left: 0; }
-      50%  { width: 70%; }
-      100% { width: 0%; margin-left: 100%; }
-    }
-
-    #loading-msg {
-      font-size: 12px;
-      color: rgba(255,255,255,.45);
-      font-weight: 500;
-      letter-spacing: .2px;
-    }
-
-    /* ================================================================
-       TOAST
-    ================================================================ */
-    #toast {
-      position: fixed;
-      bottom: 32px; left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: var(--heading);
-      color: var(--white);
-      padding: 10px 18px;
-      border-radius: 99px;
-      font-size: 12px;
-      font-weight: 500;
-      z-index: 9998;
-      opacity: 0;
-      transition: opacity var(--dur), transform var(--dur) var(--ease-spring);
-      pointer-events: none;
-      white-space: nowrap;
-      box-shadow: var(--sh-lg);
-      border: 1px solid rgba(255,255,255,.08);
-    }
-
-    #toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    /* ================================================================
-       POPUP  — premium card style
-    ================================================================ */
-    .leaflet-popup-content-wrapper {
-      border-radius: var(--radius-lg) !important;
-      box-shadow: var(--sh-xl) !important;
-      padding: 0 !important;
-      border: none !important;
-      overflow: hidden;
-    }
-
-    .leaflet-popup-content {
-      margin: 0 !important;
-      min-width: 240px;
-      max-width: 300px;
-    }
-
-    .leaflet-popup-tip-container { margin-top: -1px; }
-
-    /* popup header */
-    .pu-head {
-      padding: 14px 16px 12px;
-      position: relative;
-    }
-
-    .pu-orde-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 8px;
-      background: rgba(255,255,255,.18);
-      border: 1px solid rgba(255,255,255,.25);
-      border-radius: 99px;
-      font-size: 9px;
-      font-weight: 700;
-      color: rgba(255,255,255,.9);
-      text-transform: uppercase;
-      letter-spacing: .6px;
-      margin-bottom: 6px;
-    }
-
-    .pu-title {
-      font-size: 15px;
-      font-weight: 800;
-      color: var(--white);
-      line-height: 1.25;
-      letter-spacing: -.2px;
-    }
-
-    .pu-kec {
-      font-size: 11px;
-      color: rgba(255,255,255,.7);
-      margin-top: 3px;
-    }
-
-    /* popup body */
-    .pu-body {
-      padding: 12px 16px 8px;
-      background: var(--white);
-    }
-
-    .pu-row {
-      display: flex;
-      gap: 8px;
-      padding: 5px 0;
-      border-bottom: 1px solid var(--surface2);
-      font-size: 12px;
-      align-items: baseline;
-    }
-
-    .pu-row:last-of-type { border-bottom: none; }
-
-    .pu-k {
-      color: var(--muted);
-      min-width: 96px;
-      font-weight: 500;
-      flex-shrink: 0;
-      font-size: 11px;
-    }
-
-    .pu-v {
-      color: var(--heading);
-      font-weight: 600;
-      word-break: break-word;
-      flex: 1;
-    }
-
-    /* popup actions */
-    .pu-foot {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      padding: 12px 16px;
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-    }
-
-    .pu-btn {
-      padding: 10px 8px;
-      border-radius: var(--radius-sm);
-      border: none;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all var(--dur-fast);
-      display: flex; align-items: center; justify-content: center;
-      gap: 5px;
-      letter-spacing: -.1px;
-    }
-
-    .pu-btn:active { transform: scale(.96); }
-
-    .pu-nav {
-      background: var(--accent);
-      color: var(--white);
-      box-shadow: 0 2px 8px rgba(37,99,235,.3);
-    }
-
-    .pu-nav:hover { background: var(--accent-dark); box-shadow: 0 4px 12px rgba(37,99,235,.4); }
-
-    .pu-copy {
-      background: var(--white);
-      color: var(--body);
-      border: 1.5px solid var(--border);
-    }
-
-    .pu-copy:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
-
-    /* ================================================================
-       LEAFLET OVERRIDES
-    ================================================================ */
-    .leaflet-control-zoom { display: none !important; }
-
-    .leaflet-control-attribution {
-      font-size: 9px !important;
-      background: rgba(255,255,255,.75) !important;
-      backdrop-filter: blur(4px);
-      border-radius: 6px 0 0 0 !important;
-      padding: 2px 6px !important;
-    }
-
-    /* ================================================================
-       ============================================================
-       MOBILE — bottom sheet pattern
-       ============================================================
-    ================================================================ */
-    @media (max-width: 700px) {
-
-      /* full-screen map */
-      #app { flex-direction: column; }
-
-      /* panel becomes bottom sheet */
-      #panel {
-        position: fixed;
-        bottom: 0; left: 0; right: 0;
-        width: 100%;
-        height: auto;
-        max-height: 72vh;
-        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-        box-shadow: 0 -8px 32px rgba(0,0,0,.18);
-        transform: translateY(0);
-        z-index: 600;
-        transition: transform var(--dur-slow) var(--ease-out);
-      }
-
-      #panel.collapsed { transform: translateY(calc(100% - 0px)); }
-
-      /* dark header → becomes handle area */
-      #panel-header {
-        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-        padding: 0 18px 14px;
-        cursor: grab;
-      }
-
-      /* drag handle pill */
-      #panel-header::before {
-        content: '';
-        display: block;
-        width: 40px; height: 4px;
-        background: rgba(255,255,255,.25);
-        border-radius: 99px;
-        margin: 10px auto 14px;
-      }
-
-      /* hide desktop toggle, use handle instead */
-      #toggle-btn { display: none; }
-
-      /* mobile open/close button — pill at bottom of screen */
-      #mob-handle {
-        display: flex;
-        position: fixed;
-        bottom: 16px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 601;
-        background: var(--heading);
-        color: var(--white);
-        border: none;
-        border-radius: 99px;
-        padding: 10px 20px;
-        font-size: 12px;
-        font-weight: 700;
-        gap: 6px;
-        align-items: center;
-        box-shadow: var(--sh-lg);
-        cursor: pointer;
-        white-space: nowrap;
-        transition: transform var(--dur-slow) var(--ease-out), bottom var(--dur-slow) var(--ease-out);
-      }
-
-      /* when panel is open, push button up */
-      #mob-handle.panel-open {
-        bottom: calc(72vh + 8px);
-      }
-
-      #mob-handle svg { width: 14px; height: 14px; }
-
-      /* map gets full screen */
-      #map-wrap {
-        position: fixed;
-        inset: 0;
-        z-index: 1;
-      }
-
-      /* fab reposition */
-      .fab-col {
-        right: 12px;
-        bottom: 80px;
-      }
-
-      /* popup wider on mobile */
-      .leaflet-popup-content {
-        min-width: 240px !important;
-        max-width: calc(100vw - 48px) !important;
-      }
-
-      /* bigger touch targets */
-      select.fsel { padding: 11px 32px 11px 11px; font-size: 13px; }
-      .layer-row { padding: 10px 10px; }
-      .bmap-btn { padding: 11px 6px; font-size: 12px; }
-      .pu-btn { padding: 12px 8px; font-size: 13px; }
-
-      /* stats 4 col on mobile */
-      .stats-strip { grid-template-columns: repeat(2, 1fr); }
-
-      #panel-body { padding: 12px 16px 32px; }
-
-      /* hide back link text on very small screens */
-      .ph-back span { display: none; }
-    }
-
-    /* desktop: hide mobile handle */
-    @media (min-width: 701px) {
-      #mob-handle { display: none; }
-    }
-
-    /* ================================================================
-       UTILITY
-    ================================================================ */
-    .visually-hidden {
-      position: absolute;
-      width: 1px; height: 1px;
-      overflow: hidden;
-      clip: rect(0,0,0,0);
-      white-space: nowrap;
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Benchmark Locator — PTSI</title>
+<link rel="icon" href="logoptsi.jpg" type="image/jpeg"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+/* ═══════════════════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════════════════ */
+:root {
+  --accent:       #2563EB;
+  --accent-dark:  #1D4ED8;
+  --accent-light: #EFF6FF;
+  --accent-glow:  rgba(37,99,235,.18);
+  --c1: #3B82F6;
+  --c2: #22C55E;
+  --c3: #F97316;
+  --crs: #EF4444;
+  --cpl: #2563EB;
+  --cpd: #F59E0B;
+  --white:   #FFFFFF;
+  --surface:  #F8FAFC;
+  --surface2: #F1F5F9;
+  --border:   #E2E8F0;
+  --border2:  #CBD5E1;
+  --muted:    #94A3B8;
+  --body:     #475569;
+  --heading:  #0F172A;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --sh-sm: 0 1px 3px rgba(0,0,0,.08);
+  --sh-md: 0 4px 12px rgba(0,0,0,.12);
+  --sh-lg: 0 8px 24px rgba(0,0,0,.14);
+  --sh-xl: 0 12px 36px rgba(0,0,0,.18);
+  --panel-w: 300px;
+  --transition: .22s cubic-bezier(.4,0,.2,1);
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESET / BASE
+═══════════════════════════════════════════════════════ */
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html,body { height:100%; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; }
+button { font-family:inherit; }
+
+/* ═══════════════════════════════════════════════════════
+   LOADING SCREEN
+═══════════════════════════════════════════════════════ */
+#loading {
+  position:fixed; inset:0; z-index:9999;
+  background:var(--heading);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px;
+}
+#loading img { width:64px; height:64px; border-radius:12px; object-fit:cover; }
+#loading h2 { color:var(--white); font-size:20px; font-weight:700; letter-spacing:.5px; }
+#loading p  { color:var(--muted); font-size:12px; }
+#loading-bar-wrap { width:200px; height:4px; background:rgba(255,255,255,.12); border-radius:99px; overflow:hidden; }
+#loading-bar { height:100%; background:var(--accent); border-radius:99px; width:0%; transition:width .3s; animation:lbar 2.2s ease infinite; }
+@keyframes lbar { 0%{width:0%} 60%{width:80%} 100%{width:95%} }
+
+/* ═══════════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════════ */
+#toast {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--heading); color:var(--white); padding:10px 20px;
+  border-radius:99px; font-size:13px; font-weight:500;
+  opacity:0; pointer-events:none; z-index:8000;
+  transition:opacity .25s, transform .25s;
+  white-space:nowrap; max-width:90vw; text-align:center;
+}
+#toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ═══════════════════════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════════════════════ */
+#app {
+  display:flex; height:100vh; overflow:hidden; position:relative;
+}
+
+/* ═══════════════════════════════════════════════════════
+   PANEL
+═══════════════════════════════════════════════════════ */
+#panel {
+  width:var(--panel-w); min-width:var(--panel-w);
+  display:flex; flex-direction:column;
+  background:var(--white);
+  border-right:1px solid var(--border);
+  z-index:500;
+  transition:transform var(--transition), margin var(--transition);
+  overflow:hidden;
+}
+#panel.collapsed {
+  transform:translateX(calc(-1 * var(--panel-w)));
+  margin-right:calc(-1 * var(--panel-w));
+}
+
+/* Panel header */
+#panel-header {
+  background:var(--heading);
+  padding:16px 14px 12px;
+  flex-shrink:0;
+}
+.ph-top { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.ph-logo { width:38px; height:38px; border-radius:8px; object-fit:cover; flex-shrink:0; }
+.ph-titles { flex:1; min-width:0; }
+.ph-title { color:var(--white); font-size:15px; font-weight:700; line-height:1.2; }
+.ph-sub   { color:var(--muted); font-size:10px; margin-top:2px; }
+.ph-back  { display:inline-flex; align-items:center; gap:5px; color:rgba(255,255,255,.55); font-size:11px; text-decoration:none; margin-top:4px; transition:color .15s; }
+.ph-back:hover { color:var(--white); }
+
+/* Panel body */
+#panel-body {
+  flex:1; overflow-y:auto; padding:12px 10px; display:flex; flex-direction:column; gap:10px;
+}
+#panel-body::-webkit-scrollbar { width:4px; }
+#panel-body::-webkit-scrollbar-track { background:transparent; }
+#panel-body::-webkit-scrollbar-thumb { background:var(--border2); border-radius:99px; }
+
+/* ── Section ── */
+.section {
+  display:flex; flex-direction:column; gap:6px;
+}
+.sec-label {
+  font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1px;
+  color:var(--muted); padding:0 2px 2px;
+}
+
+/* ── Search ── */
+.search-wrap {
+  position:relative;
+}
+.search-wrap svg {
+  position:absolute; left:9px; top:50%; transform:translateY(-50%);
+  pointer-events:none; color:var(--muted);
+}
+#search-input {
+  width:100%; padding:8px 10px 8px 30px;
+  border:1.5px solid var(--border); border-radius:var(--radius-md);
+  font-size:12px; color:var(--heading); background:var(--surface);
+  outline:none; transition:border-color .15s;
+}
+#search-input:focus { border-color:var(--accent); background:var(--white); }
+#search-results {
+  display:none; flex-direction:column; gap:4px; margin-top:4px;
+  max-height:220px; overflow-y:auto;
+}
+#search-results.visible { display:flex; }
+.sr-item {
+  padding:7px 10px; background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-sm); cursor:pointer; display:flex; align-items:center; gap:8px;
+  transition:background .15s;
+}
+.sr-item:hover { background:var(--accent-light); border-color:var(--accent); }
+.sr-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.sr-name { font-size:11px; font-weight:600; color:var(--heading); flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.sr-sub  { font-size:10px; color:var(--muted); }
+.badge { font-size:9px; font-weight:700; padding:2px 5px; border-radius:4px; flex-shrink:0; }
+.badge-1  { background:#DBEAFE; color:#1D4ED8; }
+.badge-2  { background:#DCFCE7; color:#15803D; }
+.badge-3  { background:#FFEDD5; color:#C2410C; }
+.badge-rs { background:#FEE2E2; color:#B91C1C; }
+.badge-pl { background:#DBEAFE; color:#1D4ED8; }
+.badge-pd { background:#FEF3C7; color:#B45309; }
+
+/* ── Filters ── */
+select, .filter-select {
+  width:100%; padding:7px 10px; border:1.5px solid var(--border);
+  border-radius:var(--radius-md); font-size:12px; color:var(--heading);
+  background:var(--surface); outline:none; cursor:pointer; transition:border-color .15s;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 10px center;
+  padding-right:28px;
+}
+select:focus { border-color:var(--accent); }
+#btn-reset-filter {
+  padding:7px 10px; border:1.5px solid var(--border2); border-radius:var(--radius-md);
+  font-size:11px; font-weight:600; color:var(--body); background:var(--surface);
+  cursor:pointer; transition:all .15s; text-align:center;
+}
+#btn-reset-filter:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-light); }
+
+/* ── Layer Groups ── */
+.layer-group-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:6px 8px; background:var(--surface2); border-radius:var(--radius-sm);
+  font-size:12px; font-weight:700; color:var(--heading); cursor:pointer;
+  margin-bottom:2px;
+}
+.grp-toggle {
+  background:none; border:none; cursor:pointer; color:var(--muted);
+  font-size:10px; padding:2px 4px; border-radius:4px; transition:all .15s;
+}
+.grp-toggle:hover { background:var(--border); color:var(--heading); }
+.layer-group-body { overflow:hidden; max-height:200px; transition:max-height .25s ease; }
+.layer-group-body.collapsed { max-height:0; }
+
+/* Layer row */
+.layer-row {
+  display:flex; align-items:center; gap:8px; padding:5px 4px;
+  border-radius:var(--radius-sm); cursor:pointer;
+  transition:background .12s;
+}
+.layer-row:hover { background:var(--surface2); }
+.layer-row input[type=checkbox] { accent-color:var(--accent); cursor:pointer; flex-shrink:0; }
+.sw { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+.sw-1  { background:var(--c1); }
+.sw-2  { background:var(--c2); }
+.sw-3  { background:var(--c3); }
+.sw-rs { background:var(--crs); }
+.sw-pl { background:var(--cpl); }
+.sw-pd { background:var(--cpd); }
+.lyr-label { font-size:12px; color:var(--body); flex:1; }
+.lyr-emoji { font-size:13px; line-height:1; }
+.lyr-cnt {
+  font-size:10px; font-weight:700; padding:2px 6px;
+  border-radius:99px; background:var(--surface2); color:var(--muted);
+  min-width:24px; text-align:center;
+}
+
+/* ── Basemap ── */
+.bm-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:5px; }
+.bm-btn {
+  padding:7px 4px; border:1.5px solid var(--border); border-radius:var(--radius-sm);
+  font-size:10px; font-weight:600; color:var(--body); background:var(--surface);
+  cursor:pointer; text-align:center; transition:all .15s; line-height:1.4;
+}
+.bm-btn:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-light); }
+.bm-btn.active { border-color:var(--accent); background:var(--accent); color:var(--white); }
+
+/* ── Stats ── */
+.stats-strip {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:5px;
+}
+.stat-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:8px 4px;
+  text-align:center; position:relative; overflow:hidden;
+}
+.stat-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+}
+.stat-card.s1::before  { background:var(--c1); }
+.stat-card.s2::before  { background:var(--c2); }
+.stat-card.s3::before  { background:var(--c3); }
+.stat-card.srs::before { background:var(--crs); }
+.stat-card.spl::before { background:var(--cpl); }
+.stat-card.spd::before { background:var(--cpd); }
+.stat-n { font-size:16px; font-weight:800; color:var(--heading); line-height:1; margin-top:2px; }
+.stat-l { font-size:9px; color:var(--muted); margin-top:3px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+
+/* ── Legend ── */
+.leg-list { display:flex; flex-direction:column; gap:5px; }
+.leg-item { display:flex; align-items:center; gap:8px; }
+.leg-dot  { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.leg-label { font-size:11px; font-weight:600; color:var(--heading); }
+.leg-desc  { font-size:10px; color:var(--muted); margin-left:auto; }
+
+/* ═══════════════════════════════════════════════════════
+   PANEL TOGGLE (desktop chevron)
+═══════════════════════════════════════════════════════ */
+#toggle-btn {
+  position:absolute; left:var(--panel-w); top:50%; transform:translateY(-50%);
+  z-index:510; width:20px; height:48px;
+  background:var(--white); border:1px solid var(--border);
+  border-left:none; border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  box-shadow:3px 0 8px rgba(0,0,0,.08); transition:left var(--transition);
+  font-size:11px; color:var(--muted);
+}
+#toggle-btn:hover { color:var(--accent); background:var(--accent-light); }
+#panel.collapsed ~ #toggle-btn { left:0; }
+
+/* ═══════════════════════════════════════════════════════
+   MAP WRAP
+═══════════════════════════════════════════════════════ */
+#map-wrap { flex:1; position:relative; overflow:hidden; }
+#map { width:100%; height:100%; }
+
+/* ═══════════════════════════════════════════════════════
+   FAB COLUMN
+═══════════════════════════════════════════════════════ */
+.fab-col {
+  position:absolute; bottom:24px; right:14px; z-index:400;
+  display:flex; flex-direction:column; gap:6px; align-items:center;
+}
+.fab {
+  width:40px; height:40px; border-radius:12px;
+  background:var(--white); border:1px solid var(--border);
+  box-shadow:var(--sh-md); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; color:var(--body); transition:all .15s;
+}
+.fab:hover { border-color:var(--accent); background:var(--accent-light); color:var(--accent); transform:scale(1.05); }
+.fab.fab-primary { background:var(--accent); color:var(--white); border-color:var(--accent); }
+.fab.fab-primary:hover { background:var(--accent-dark); border-color:var(--accent-dark); color:var(--white); }
+.fab-zoom-grp { display:flex; flex-direction:column; gap:0; }
+.fab-zoom-grp .fab:first-child { border-radius:12px 12px 0 0; border-bottom:none; }
+.fab-zoom-grp .fab:last-child  { border-radius:0 0 12px 12px; }
+
+/* ═══════════════════════════════════════════════════════
+   NEAREST PANEL
+═══════════════════════════════════════════════════════ */
+#nearest-panel {
+  display:none;
+  position:absolute;
+  bottom:80px; left:14px;
+  width:280px;
+  background:var(--white);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--sh-xl);
+  z-index:450;
+  overflow:hidden;
+}
+.np-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 14px; background:var(--heading); color:var(--white);
+}
+.np-title { font-size:13px; font-weight:700; }
+.np-close { background:none; border:none; color:rgba(255,255,255,.6); font-size:14px; cursor:pointer; padding:0; }
+.np-close:hover { color:var(--white); }
+.np-tabs { display:flex; border-bottom:1px solid var(--border); }
+.np-tab {
+  flex:1; padding:7px 4px; font-size:10px; font-weight:700;
+  border:none; background:none; cursor:pointer; color:var(--muted);
+  border-bottom:2px solid transparent; transition:all .15s;
+}
+.np-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+.np-results-wrap { max-height:200px; overflow-y:auto; }
+.np-item { display:flex; align-items:center; gap:8px; padding:8px 12px; border-bottom:1px solid var(--surface2); }
+.np-item:last-child { border-bottom:none; }
+.np-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.np-info { flex:1; min-width:0; }
+.np-name { font-size:11px; font-weight:600; color:var(--heading); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.np-sub  { font-size:10px; color:var(--muted); }
+.np-actions { display:flex; gap:4px; }
+.np-btn {
+  width:26px; height:26px; border:1px solid var(--border); border-radius:6px;
+  background:var(--surface); cursor:pointer; font-size:12px;
+  display:flex; align-items:center; justify-content:center;
+}
+.np-btn:hover { border-color:var(--accent); background:var(--accent-light); }
+.np-empty { padding:16px; text-align:center; font-size:12px; color:var(--muted); }
+
+/* ═══════════════════════════════════════════════════════
+   POPUP STYLES
+═══════════════════════════════════════════════════════ */
+.leaflet-popup-content-wrapper { padding:0; border-radius:var(--radius-lg); overflow:hidden; }
+.leaflet-popup-content { margin:0; width:260px !important; }
+.leaflet-popup-tip-container { margin-top:-1px; }
+.pu-head {
+  padding:12px 14px 10px;
+  display:flex; flex-direction:column; gap:4px;
+}
+.pu-pill {
+  display:inline-flex; align-items:center; gap:4px;
+  font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.8px;
+  background:rgba(255,255,255,.2); color:rgba(255,255,255,.95);
+  padding:3px 8px; border-radius:99px; width:fit-content;
+}
+.pu-title  { font-size:14px; font-weight:800; color:#fff; line-height:1.2; }
+.pu-sub    { font-size:10px; color:rgba(255,255,255,.75); }
+.pu-body   { padding:10px 14px; display:flex; flex-direction:column; gap:5px; }
+.pu-row    { display:flex; align-items:baseline; gap:6px; font-size:11px; }
+.pu-key    { color:var(--muted); flex-shrink:0; min-width:90px; font-size:10px; }
+.pu-val    { color:var(--heading); font-weight:600; word-break:break-word; }
+.pu-foot   { padding:8px 14px 12px; display:flex; flex-direction:column; gap:5px; border-top:1px solid var(--border); }
+.pu-foot-row { display:grid; grid-template-columns:1fr 1fr; gap:5px; }
+.pu-foot-full { display:grid; grid-template-columns:1fr; }
+.pu-btn {
+  padding:7px 8px; border-radius:var(--radius-sm); font-size:11px; font-weight:600;
+  cursor:pointer; text-align:center; border:1.5px solid var(--border);
+  background:var(--surface); color:var(--body); transition:all .15s; white-space:nowrap;
+}
+.pu-btn:hover { border-color:var(--accent); background:var(--accent-light); color:var(--accent); }
+.pu-btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+.pu-btn.primary:hover { background:var(--accent-dark); border-color:var(--accent-dark); }
+
+/* ES highlight */
+.es-hl { filter: drop-shadow(0 0 6px rgba(37,99,235,.8)) drop-shadow(0 0 12px rgba(37,99,235,.5)); }
+
+/* ═══════════════════════════════════════════════════════
+   MOBILE BOTTOM SHEET
+═══════════════════════════════════════════════════════ */
+#mob-handle {
+  display:none;
+  position:fixed; bottom:0; left:0; right:0; z-index:600;
+  background:var(--white); border-top:1px solid var(--border);
+  padding:10px 16px 14px;
+  box-shadow:0 -4px 16px rgba(0,0,0,.1);
+}
+.mob-pill {
+  width:36px; height:4px; background:var(--border2); border-radius:99px;
+  margin:0 auto 10px;
+}
+.mob-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.mob-title { font-size:14px; font-weight:700; color:var(--heading); }
+#mob-toggle-btn {
+  padding:7px 16px; background:var(--accent); color:var(--white);
+  border:none; border-radius:var(--radius-sm); font-size:12px; font-weight:700;
+  cursor:pointer;
+}
+
+@media (max-width:640px) {
+  #toggle-btn { display:none; }
+  #mob-handle { display:block; }
+  #panel {
+    position:fixed; left:0; bottom:72px; top:0; z-index:590;
+    transform:translateX(-100%); transition:transform var(--transition);
+    width:min(var(--panel-w),90vw); min-width:unset;
+  }
+  #panel.open { transform:translateX(0); }
+  #map-wrap { height:100vh; }
+  .fab-col { bottom:90px; }
+  #nearest-panel { bottom:100px; left:8px; width:calc(100vw - 16px); max-width:320px; }
+}
+</style>
 </head>
 <body>
 
-<!-- ================================================================
-     LOADING SCREEN
-================================================================ -->
-<div id="loading" role="status" aria-live="polite">
-  <div class="ld-logo"><img src="logoptsi.jpg" alt="Logo PTSI" /></div>
-  <div class="ld-title">Benchmark Locator</div>
-  <div class="ld-bar"><div class="ld-bar-inner"></div></div>
-  <div id="loading-msg">Memuat data GeoJSON…</div>
+<!-- ── LOADING ── -->
+<div id="loading">
+  <img src="logoptsi.jpg" alt="PTSI"/>
+  <h2>Benchmark Locator</h2>
+  <p id="loading-msg">Memuat data…</p>
+  <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
 </div>
 
-<!-- TOAST -->
-<div id="toast" role="status" aria-live="polite"></div>
+<!-- ── TOAST ── -->
+<div id="toast"></div>
 
-<!-- ================================================================
-     APP SHELL
-================================================================ -->
+<!-- ── APP ── -->
 <div id="app">
 
-  <!-- =================== SIDEBAR =================== -->
-  <div id="panel" role="complementary" aria-label="Panel Kontrol">
-
+  <!-- ══ PANEL ══ -->
+  <div id="panel">
     <!-- Header -->
     <div id="panel-header">
-      <div class="ph-brand">
-        <div class="ph-logo" aria-hidden="true"><img src="logoptsi.jpg" alt="Logo PTSI" /></div>
-        <div class="ph-text">
-          <h1>Benchmark Locator</h1>
-          <p>PTSI — Blok Rokan</p>
+      <div class="ph-top">
+        <img src="logoptsi.jpg" alt="PTSI" class="ph-logo"/>
+        <div class="ph-titles">
+          <div class="ph-title">Benchmark Locator</div>
+          <div class="ph-sub">PTSI — Blok Rokan</div>
         </div>
-        <a href="index.html" class="ph-back" aria-label="Kembali ke beranda">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="10,3 5,8 10,13"/></svg>
-          <span>Beranda</span>
-        </a>
       </div>
+      <a href="index.html" class="ph-back">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        Kembali ke Beranda
+      </a>
     </div>
 
-    <!-- Scrollable Body -->
+    <!-- Body -->
     <div id="panel-body">
 
-      <!-- ERROR -->
-      <div id="err-banner" role="alert"></div>
-
-      <!-- ── SEARCH ── -->
+      <!-- SEARCH -->
       <div class="section">
-        <div class="sec-label">Cari Titik</div>
-        <div id="search-wrap" role="search">
-          <svg id="search-icon-svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <circle cx="9" cy="9" r="5.5"/><line x1="13.5" y1="13.5" x2="17" y2="17"/>
-          </svg>
-          <input
-            type="search"
-            id="search-input"
-            placeholder="Cari nama BM, well, atau kecamatan…"
-            autocomplete="off"
-            spellcheck="false"
-            aria-label="Cari nama BM, well, atau kecamatan"
-          />
-          <button id="search-clear" aria-label="Hapus pencarian">
-            <svg viewBox="0 0 16 16" fill="currentColor" width="10" height="10"><path d="M8 7l5-5 1 1-5 5 5 5-1 1-5-5-5 5-1-1 5-5-5-5 1-1z"/></svg>
-          </button>
+        <div class="sec-label">Cari</div>
+        <div class="search-wrap">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input id="search-input" type="text" placeholder="Nama BM, Kecamatan, RS…" autocomplete="off"/>
         </div>
-        <div id="search-dropdown" role="listbox" aria-label="Hasil pencarian"></div>
+        <div id="search-results"></div>
       </div>
 
-      <!-- ── FILTER ── -->
+      <!-- FILTER -->
       <div class="section">
         <div class="sec-label">Filter</div>
-        <div class="filter-row">
-          <label class="filter-lbl" for="fil-kec">
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 4h12M4 8h8M6 12h4"/></svg>
-            Kecamatan
-          </label>
-          <select id="fil-kec" class="fsel" aria-label="Filter kecamatan">
-            <option value="">Semua Kecamatan</option>
-          </select>
-        </div>
-        <div class="filter-row">
-          <label class="filter-lbl" for="fil-orde">
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="5"/></svg>
-            Tingkatan Orde
-          </label>
-          <select id="fil-orde" class="fsel" aria-label="Filter orde">
-            <option value="">Semua Orde</option>
-            <option value="1">ORDE 1</option>
-            <option value="2">ORDE 2</option>
-            <option value="3">ORDE 3</option>
-          </select>
-        </div>
-        <button id="btn-reset-filter" aria-label="Reset semua filter">
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4h10M7 1l-3 3 3 3M15 12H5M9 9l3 3-3 3"/></svg>
-          Reset Filter
-        </button>
+        <select id="fil-kec">
+          <option value="">Semua Kecamatan</option>
+        </select>
+        <select id="fil-orde">
+          <option value="">Semua Orde</option>
+          <option value="1">ORDE 1</option>
+          <option value="2">ORDE 2</option>
+          <option value="3">ORDE 3</option>
+        </select>
+        <button id="btn-reset-filter">↺ Reset Filter</button>
       </div>
 
-      <!-- ── LAYER TOGGLE ── -->
+      <!-- LAYERS -->
       <div class="section">
-        <div class="sec-label">Visibilitas Layer</div>
+        <div class="sec-label">Layer</div>
 
-        <!-- Subsection: Benchmark Orde -->
-        <div class="subsec-label">Benchmark Orde</div>
-        <div class="layer-list">
-          <label class="layer-row" for="chk-1">
-            <input type="checkbox" id="chk-1" checked aria-label="Tampilkan ORDE 1" />
-            <span class="layer-toggle-pill" aria-hidden="true"></span>
-            <span class="layer-swatch sw-1" aria-hidden="true"></span>
-            <span class="layer-name">ORDE 1</span>
-            <span class="layer-cnt" id="cnt-1">0</span>
+        <!-- Benchmark group -->
+        <div class="layer-group-header" id="grp-bm-hdr">
+          <span>📍 Benchmark</span>
+          <button class="grp-toggle" data-grp="bm">▼</button>
+        </div>
+        <div class="layer-group-body" id="grp-bm-body">
+          <label class="layer-row">
+            <input type="checkbox" id="chk-1" checked/>
+            <div class="sw sw-1"></div>
+            <span class="lyr-label">ORDE 1</span>
+            <span class="lyr-cnt" id="cnt-1">—</span>
           </label>
-          <label class="layer-row" for="chk-2">
-            <input type="checkbox" id="chk-2" checked aria-label="Tampilkan ORDE 2" />
-            <span class="layer-toggle-pill" aria-hidden="true"></span>
-            <span class="layer-swatch sw-2" aria-hidden="true"></span>
-            <span class="layer-name">ORDE 2</span>
-            <span class="layer-cnt" id="cnt-2">0</span>
+          <label class="layer-row">
+            <input type="checkbox" id="chk-2" checked/>
+            <div class="sw sw-2"></div>
+            <span class="lyr-label">ORDE 2</span>
+            <span class="lyr-cnt" id="cnt-2">—</span>
           </label>
-          <label class="layer-row" for="chk-3">
-            <input type="checkbox" id="chk-3" checked aria-label="Tampilkan ORDE 3" />
-            <span class="layer-toggle-pill" aria-hidden="true"></span>
-            <span class="layer-swatch sw-3" aria-hidden="true"></span>
-            <span class="layer-name">ORDE 3</span>
-            <span class="layer-cnt" id="cnt-3">0</span>
+          <label class="layer-row">
+            <input type="checkbox" id="chk-3" checked/>
+            <div class="sw sw-3"></div>
+            <span class="lyr-label">ORDE 3</span>
+            <span class="lyr-cnt" id="cnt-3">—</span>
           </label>
         </div>
 
-        <!-- Divider -->
-        <div class="layer-divider"></div>
-
-        <!-- Subsection: Well -->
-        <div class="subsec-label">Well</div>
-        <div class="layer-list">
-          <label class="layer-row" for="chk-w">
-            <input type="checkbox" id="chk-w" checked aria-label="Tampilkan Well" />
-            <span class="layer-toggle-pill" aria-hidden="true"></span>
-            <span class="layer-swatch sw-w" aria-hidden="true"></span>
-            <span class="layer-name">Well</span>
-            <span class="layer-cnt" id="cnt-w">0</span>
+        <!-- Emergency Services group -->
+        <div class="layer-group-header" id="grp-es-hdr" style="margin-top:4px">
+          <span>🚨 Emergency Services</span>
+          <button class="grp-toggle" data-grp="es">▼</button>
+        </div>
+        <div class="layer-group-body" id="grp-es-body">
+          <label class="layer-row">
+            <input type="checkbox" id="chk-rs" checked/>
+            <div class="sw sw-rs"></div>
+            <span class="lyr-label">Rumah Sakit</span>
+            <span class="lyr-emoji">🏥</span>
+            <span class="lyr-cnt" id="cnt-rs">—</span>
+          </label>
+          <label class="layer-row">
+            <input type="checkbox" id="chk-pl" checked/>
+            <div class="sw sw-pl"></div>
+            <span class="lyr-label">Polisi</span>
+            <span class="lyr-emoji">🚔</span>
+            <span class="lyr-cnt" id="cnt-pl">—</span>
+          </label>
+          <label class="layer-row">
+            <input type="checkbox" id="chk-pd" checked/>
+            <div class="sw sw-pd"></div>
+            <span class="lyr-label">Pemadam</span>
+            <span class="lyr-emoji">🚒</span>
+            <span class="lyr-cnt" id="cnt-pd">—</span>
           </label>
         </div>
       </div>
 
-      <!-- ── BASEMAP ── -->
+      <!-- BASEMAP -->
       <div class="section">
-        <div class="sec-label">Peta Dasar</div>
-        <div class="bmap-group">
-          <button class="bmap-btn" id="bm-osm" aria-pressed="false">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c-2 2-2 8 0 12M8 2c2 2 2 8 0 12"/></svg>
-            Peta Jalan
-          </button>
-          <button class="bmap-btn active" id="bm-sat" aria-pressed="true">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M2 6h12M2 10h12M6 2v12M10 2v12"/></svg>
-            Satelit
-          </button>
+        <div class="sec-label">Basemap</div>
+        <div class="bm-grid">
+          <button class="bm-btn active" id="bm-sat" onclick="setBasemap('sat')">🛰<br>Satelit</button>
+          <button class="bm-btn" id="bm-terrain" onclick="setBasemap('terrain')">⛰<br>Terrain</button>
+          <button class="bm-btn" id="bm-street" onclick="setBasemap('street')">🗺<br>Street</button>
         </div>
       </div>
 
-      <!-- ── STATS ── -->
+      <!-- STATS -->
       <div class="section">
         <div class="sec-label">Statistik</div>
         <div class="stats-strip">
-          <div class="stat-card s1">
-            <div class="stat-n" id="sn-1">—</div>
-            <div class="stat-l">Orde 1</div>
-          </div>
-          <div class="stat-card s2">
-            <div class="stat-n" id="sn-2">—</div>
-            <div class="stat-l">Orde 2</div>
-          </div>
-          <div class="stat-card s3">
-            <div class="stat-n" id="sn-3">—</div>
-            <div class="stat-l">Orde 3</div>
-          </div>
-          <div class="stat-card sw">
-            <div class="stat-n" id="sn-w">—</div>
-            <div class="stat-l">Well</div>
-          </div>
+          <div class="stat-card s1"><div id="sn-1" class="stat-n">—</div><div class="stat-l">Orde 1</div></div>
+          <div class="stat-card s2"><div id="sn-2" class="stat-n">—</div><div class="stat-l">Orde 2</div></div>
+          <div class="stat-card s3"><div id="sn-3" class="stat-n">—</div><div class="stat-l">Orde 3</div></div>
+          <div class="stat-card srs"><div id="sn-rs" class="stat-n">—</div><div class="stat-l">RS</div></div>
+          <div class="stat-card spl"><div id="sn-pl" class="stat-n">—</div><div class="stat-l">Polisi</div></div>
+          <div class="stat-card spd"><div id="sn-pd" class="stat-n">—</div><div class="stat-l">Pemadam</div></div>
         </div>
-        <p id="stats-note"></p>
       </div>
 
-      <!-- ── LEGEND ── -->
+      <!-- LEGEND -->
       <div class="section">
         <div class="sec-label">Legenda</div>
         <div class="leg-list">
-          <div class="leg-item">
-            <div class="leg-dot" style="background:var(--c1)"></div>
-            <span class="leg-label">ORDE 1</span>
-            <span class="leg-desc">Orde Pertama</span>
-          </div>
-          <div class="leg-item">
-            <div class="leg-dot" style="background:var(--c2)"></div>
-            <span class="leg-label">ORDE 2</span>
-            <span class="leg-desc">Orde Kedua</span>
-          </div>
-          <div class="leg-item">
-            <div class="leg-dot" style="background:var(--c3)"></div>
-            <span class="leg-label">ORDE 3</span>
-            <span class="leg-desc">Orde Ketiga</span>
-          </div>
-          <div class="leg-item">
-            <div class="leg-dot" style="background:var(--cw)"></div>
-            <span class="leg-label">Well</span>
-            <span class="leg-desc">Titik Sumur</span>
-          </div>
-        </div>
-        <div class="info-chip">
-          <span>ℹ️</span>
-          <span>Ketuk marker di peta untuk melihat detail dan opsi navigasi. Fitur lokasi memerlukan izin browser.</span>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--c1)"></div><span class="leg-label">ORDE 1</span><span class="leg-desc">BM Orde 1</span></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--c2)"></div><span class="leg-label">ORDE 2</span><span class="leg-desc">BM Orde 2</span></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--c3)"></div><span class="leg-label">ORDE 3</span><span class="leg-desc">BM Orde 3</span></div>
+          <div class="leg-item"><span style="font-size:14px">🏥</span><span class="leg-label">Rumah Sakit</span></div>
+          <div class="leg-item"><span style="font-size:14px">🚔</span><span class="leg-label">Polisi</span></div>
+          <div class="leg-item"><span style="font-size:14px">🚒</span><span class="leg-label">Pemadam Kebakaran</span></div>
         </div>
       </div>
 
-    </div><!-- end panel-body -->
-  </div><!-- end panel -->
+    </div><!-- /panel-body -->
+  </div><!-- /panel -->
 
-  <!-- Desktop toggle button -->
-  <button id="toggle-btn" aria-label="Buka/tutup panel" aria-expanded="true">
-    <svg class="tb-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="10,3 5,8 10,13"/>
-    </svg>
-  </button>
+  <!-- ── Desktop toggle button ── -->
+  <button id="toggle-btn" title="Toggle panel">‹</button>
 
-  <!-- =================== MAP =================== -->
+  <!-- ══ MAP WRAP ══ -->
   <div id="map-wrap">
-    <div id="map" role="application" aria-label="Peta interaktif titik BM dan Well"></div>
+    <div id="map"></div>
 
-    <!-- FABs -->
-    <div class="fab-col" role="group" aria-label="Kontrol peta">
-
-      <button class="fab" id="fab-locate" aria-label="Tampilkan lokasi saya" title="Lokasi Saya">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <circle cx="10" cy="10" r="3"/><circle cx="10" cy="10" r="7" stroke-dasharray="2 2" opacity=".5"/>
-          <line x1="10" y1="1" x2="10" y2="4"/><line x1="10" y1="16" x2="10" y2="19"/>
-          <line x1="1" y1="10" x2="4" y2="10"/><line x1="16" y1="10" x2="19" y2="10"/>
-        </svg>
+    <!-- FAB column -->
+    <div class="fab-col">
+      <button class="fab" id="fab-locate" title="Lokasi Saya">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7"/></svg>
       </button>
-
+      <button class="fab fab-primary" id="fab-nearest" title="Temukan Terdekat">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
+      </button>
       <div class="fab-zoom-grp">
-        <button class="fab" id="fab-in" aria-label="Zoom in" title="Zoom In">
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 4a1 1 0 011 1v4h4a1 1 0 010 2h-4v4a1 1 0 01-2 0v-4H5a1 1 0 010-2h4V5a1 1 0 011-1z"/></svg>
-        </button>
-        <button class="fab" id="fab-out" aria-label="Zoom out" title="Zoom Out">
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M5 10a1 1 0 011-1h8a1 1 0 010 2H6a1 1 0 01-1-1z"/></svg>
-        </button>
+        <button class="fab" id="fab-in" title="Zoom In">+</button>
+        <button class="fab" id="fab-out" title="Zoom Out">−</button>
       </div>
-
-      <button class="fab" id="fab-fit" aria-label="Sesuaikan tampilan ke semua data" title="Fit ke Data">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d="M4 8V4h4M16 8V4h-4M4 12v4h4M16 12v4h-4"/>
-        </svg>
+      <button class="fab" id="fab-fit" title="Fit Semua Data">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 00-2 2v3M21 8V5a2 2 0 00-2-2h-3M16 21h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
       </button>
+    </div>
 
+    <!-- Nearest Panel -->
+    <div id="nearest-panel">
+      <div class="np-header">
+        <span class="np-title">🎯 Temukan Terdekat</span>
+        <button class="np-close" id="np-close-btn">✕</button>
+      </div>
+      <div class="np-tabs">
+        <button class="np-tab active" data-cat="bm">BM</button>
+        <button class="np-tab" data-cat="rs">RS</button>
+        <button class="np-tab" data-cat="pl">Polisi</button>
+        <button class="np-tab" data-cat="pd">Pemadam</button>
+      </div>
+      <div class="np-results-wrap">
+        <div id="np-results"><div class="np-empty">Klik 🎯 untuk mencari lokasi terdekat</div></div>
+      </div>
+    </div>
+
+  </div><!-- /map-wrap -->
+
+</div><!-- /app -->
+
+<!-- ── MOBILE BOTTOM PILL ── -->
+<div id="mob-handle">
+  <div class="mob-pill"></div>
+  <div class="mob-row">
+    <span class="mob-title">Benchmark Locator</span>
+    <button id="mob-toggle-btn">Buka Panel</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   SOURCES
+═══════════════════════════════════════════════════════ */
+const SOURCES = [
+  { paths:['data/ORDE_1.json','ORDE_1.json','data/ORDE_1.geojson'], orde:1, color:'#3B82F6', label:'ORDE 1', category:'bm' },
+  { paths:['data/ORDE_2.json','ORDE_2.json','data/ORDE_2.geojson'], orde:2, color:'#22C55E', label:'ORDE 2', category:'bm' },
+  { paths:['data/ORDE_3.json','ORDE_3.json','data/ORDE_3.geojson'], orde:3, color:'#F97316', label:'ORDE 3', category:'bm' },
+  { paths:['rumahsakit.geojson'], orde:'rs', color:'#EF4444', label:'Rumah Sakit', category:'es', geomType:'multipoint' },
+  { paths:['polisi.geojson'],     orde:'pl', color:'#1D4ED8', label:'Polisi',      category:'es', geomType:'point' },
+  { paths:['pemadam.geojson'],    orde:'pd', color:'#F59E0B', label:'Pemadam',     category:'es', geomType:'point' },
+];
+
+/* ═══════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════ */
+const S = {
+  features:  [],
+  markers:   new Map(),
+  groups:    {},
+  visible:   { 1:true, 2:true, 3:true, rs:true, pl:true, pd:true },
+  totals:    { 1:0,    2:0,    3:0,    rs:0,    pl:0,    pd:0 },
+  filterKec:  '',
+  filterOrde: '',
+  dataBounds: null,
+  userMk:    null, userCircle:null,
+  highlighted: null,
+  basemap:   'sat',
+  located:   false,
+};
+
+let _fid = 0;
+
+/* ═══════════════════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════════════════ */
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function clean(v) {
+  if (v === null || v === undefined) return '';
+  const s = String(v).trim();
+  return (s === '' || s === 'null' || s === 'undefined' || s === '-' || s === 'N/A') ? '' : s;
+}
+function fmtNum(v, dec=4) {
+  const n = parseFloat(v);
+  return isNaN(n) ? '' : n.toFixed(dec);
+}
+
+let _toastTimer;
+function showToast(msg, dur=3000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), dur);
+}
+
+function setLoadMsg(msg) {
+  const el = document.getElementById('loading-msg');
+  if (el) el.textContent = msg;
+}
+function hideLoading() {
+  const el = document.getElementById('loading');
+  if (!el) return;
+  el.style.transition = 'opacity .4s';
+  el.style.opacity = '0';
+  setTimeout(() => el.remove(), 420);
+}
+function showError(msg) {
+  showToast('❌ ' + msg, 5000);
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { document.execCommand('copy'); } catch(e) {}
+  document.body.removeChild(ta);
+}
+function gCopy(lat, lng) {
+  const txt = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(txt).then(() => showToast('📋 Koordinat disalin!')).catch(() => { fallbackCopy(txt); showToast('📋 Koordinat disalin!'); });
+  } else { fallbackCopy(txt); showToast('📋 Koordinat disalin!'); }
+}
+function gNav(lat, lng) {
+  window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+}
+
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371000, dLat = (lat2-lat1)*Math.PI/180, dLng = (lng2-lng1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+/* ═══════════════════════════════════════════════════════
+   MAP INIT
+═══════════════════════════════════════════════════════ */
+const map = L.map('map', { zoomControl:false, attributionControl:true });
+
+const tiles = {
+  sat: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution:'Tiles &copy; Esri', maxZoom:19
+  }),
+  terrain: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    attribution:'Map data &copy; OpenTopoMap', maxZoom:17
+  }),
+  street: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:'&copy; OpenStreetMap contributors', maxZoom:19
+  }),
+};
+
+tiles.sat.addTo(map);
+map.setView([1.5, 101.0], 9);
+
+/* ═══════════════════════════════════════════════════════
+   BASEMAP
+═══════════════════════════════════════════════════════ */
+function setBasemap(key) {
+  if (S.basemap === key) return;
+  map.removeLayer(tiles[S.basemap]);
+  S.basemap = key;
+  tiles[key].addTo(map);
+  tiles[key].bringToBack();
+  document.querySelectorAll('.bm-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('bm-'+key).classList.add('active');
+}
+
+/* ═══════════════════════════════════════════════════════
+   LAYER GROUPS
+═══════════════════════════════════════════════════════ */
+['1','2','3','rs','pl','pd'].forEach(k => {
+  S.groups[k] = L.layerGroup().addTo(map);
+});
+
+/* ═══════════════════════════════════════════════════════
+   MARKER CREATION
+═══════════════════════════════════════════════════════ */
+function makeEsIcon(emoji) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="font-size:18px;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,.4)">${emoji}</div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+    popupAnchor: [0, -14],
+  });
+}
+
+const ES_EMOJI = { rs:'🏥', pl:'🚔', pd:'🚒' };
+
+function createMarker(feat) {
+  const cat = feat._category;
+  const orde = feat._orde;
+  const color = feat._color;
+  const [lng, lat] = feat._coords;
+
+  let mk;
+  if (cat === 'bm') {
+    mk = L.circleMarker([lat, lng], {
+      radius: 6,
+      color: '#FFFFFF',
+      weight: 2.5,
+      fillColor: color,
+      fillOpacity: 0.92,
+    });
+  } else {
+    const emoji = ES_EMOJI[String(orde)] || '📍';
+    mk = L.marker([lat, lng], { icon: makeEsIcon(emoji) });
+  }
+
+  mk.bindPopup(buildPopup(feat), { maxWidth:280, className:'pu-popup' });
+  mk.on('click', () => highlightFeature(feat._fid));
+  S.groups[String(orde)].addLayer(mk);
+  S.markers.set(feat._fid, mk);
+}
+
+/* ═══════════════════════════════════════════════════════
+   POPUPS
+═══════════════════════════════════════════════════════ */
+function row(key, val) {
+  const v = clean(val);
+  if (!v) return '';
+  return `<div class="pu-row"><span class="pu-key">${esc(key)}</span><span class="pu-val">${esc(v)}</span></div>`;
+}
+
+function buildPopup(feat) {
+  const p = feat.properties || {};
+  const [lng, lat] = feat._coords;
+  const cat = feat._category;
+  const color = feat._color;
+  const orde = feat._orde;
+  const fid = feat._fid;
+
+  if (cat === 'bm') {
+    const name = clean(p.Nama_BM) || clean(p.ID_Banchma) || '?';
+    const sub  = [clean(p.Kecamatan), clean(p.Kabupaten)].filter(Boolean).join(', ');
+    const nth  = fmtNum(p.Northing__, 4);
+    const est  = fmtNum(p.Easting__m, 4);
+    const elh  = p.Ellip_Heig !== undefined && p.Ellip_Heig !== null && clean(String(p.Ellip_Heig)) ? parseFloat(p.Ellip_Heig).toFixed(3)+' m' : '';
+    return `
+<div>
+  <div class="pu-head" style="background:${color}">
+    <div class="pu-pill">⬤ ORDE ${orde}</div>
+    <div class="pu-title">${esc(name)}</div>
+    ${sub ? `<div class="pu-sub">📍 ${esc(sub)}</div>` : ''}
+  </div>
+  <div class="pu-body">
+    ${row('Lokasi', p.Lokasi)}
+    ${row('Desa', p.Desa)}
+    ${row('Kecamatan', p.Kecamatan)}
+    ${nth ? `<div class="pu-row"><span class="pu-key">Northing (m)</span><span class="pu-val">${nth}</span></div>` : ''}
+    ${est ? `<div class="pu-row"><span class="pu-key">Easting (m)</span><span class="pu-val">${est}</span></div>` : ''}
+    ${elh ? `<div class="pu-row"><span class="pu-key">Tinggi Elipsoid</span><span class="pu-val">${elh}</span></div>` : ''}
+    ${row('Tingkatan/Orde', p.Tingkatan)}
+    <div class="pu-row"><span class="pu-key">Koordinat</span><span class="pu-val">${lat.toFixed(6)}, ${lng.toFixed(6)}</span></div>
+  </div>
+  <div class="pu-foot">
+    <div class="pu-foot-row">
+      <button class="pu-btn" onclick="gNav(${lat},${lng})">🧭 Directions</button>
+      <button class="pu-btn" onclick="gCopy(${lat},${lng})">📋 Copy Coords</button>
+    </div>
+    <div class="pu-foot-full">
+      <button class="pu-btn primary" onclick="findNearestBM(${lat},${lng})">🎯 Nearest BM</button>
     </div>
   </div>
+</div>`;
+  } else {
+    // Emergency Services
+    const ordeName = String(orde).toUpperCase();
+    const name  = clean(p.name) || '?';
+    const isRS  = orde === 'rs';
+    const isPL  = orde === 'pl';
+    const isPD  = orde === 'pd';
 
-</div><!-- end app -->
+    let addrLine = '';
+    if (isRS) { addrLine = [clean(p.alamat)].filter(Boolean).join(', '); }
+    else { addrLine = [clean(p.addr_stree), clean(p.addr_city)].filter(Boolean).join(', '); }
 
-<!-- Mobile bottom handle -->
-<button id="mob-handle" aria-label="Buka panel kontrol" aria-expanded="false">
-  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-    <polyline points="3,10 8,5 13,10"/>
-  </svg>
-  <span id="mob-handle-label">Buka Panel</span>
-</button>
-
-<!-- ================================================================
-     JAVASCRIPT — All features preserved + Well layer added
-================================================================ -->
-<script>
-(function () {
-  'use strict';
-
-  /* ──────────────────────────────────────────────────────────
-     DATASOURCE CONFIG
-     SOURCES: BM orde layers + Well layer (dummy — replace when real data available).
-     Auto-detect path: data/ subfolder first, then repo root.
-  ────────────────────────────────────────────────────────── */
-  const SOURCES = [
-    {
-      paths: ['data/ORDE_1.json', 'ORDE_1.json', 'data/ORDE_1.geojson', 'ORDE_1.geojson'],
-      orde: 1, color: '#3B82F6', label: 'ORDE 1', isWell: false
-    },
-    {
-      paths: ['data/ORDE_2.json', 'ORDE_2.json', 'data/ORDE_2.geojson', 'ORDE_2.geojson'],
-      orde: 2, color: '#22C55E', label: 'ORDE 2', isWell: false
-    },
-    {
-      paths: ['data/ORDE_3.json', 'ORDE_3.json', 'data/ORDE_3.geojson', 'ORDE_3.geojson'],
-      orde: 3, color: '#F97316', label: 'ORDE 3', isWell: false
-    },
-    /* WELL — DUMMY DATA placeholder. Replace data/well_dummy.geojson with real data. */
-    {
-      paths: ['data/well_dummy.geojson', 'well_dummy.geojson'],
-      orde: 'w', color: '#8B5CF6', label: 'Well', isWell: true
-    },
-  ];
-
-  /* ──────────────────────────────────────────────────────────
-     MARKER STYLES
-     White outline makes markers pop on satellite imagery.
-  ────────────────────────────────────────────────────────── */
-  const BASE_STYLE = { radius: 6, weight: 2.5, color: '#FFFFFF', opacity: 1, fillOpacity: 0.9 };
-  const HL_STYLE   = { radius: 9, weight: 3,   color: '#FFFFFF', opacity: 1, fillOpacity: 1 };
-  /* Well markers are slightly larger to distinguish from BM markers */
-  const WELL_BASE  = { radius: 7, weight: 2.5, color: '#FFFFFF', opacity: 1, fillOpacity: 0.85 };
-  const WELL_HL    = { radius: 10, weight: 3,  color: '#FFFFFF', opacity: 1, fillOpacity: 1 };
-
-  /* ──────────────────────────────────────────────────────────
-     APPLICATION STATE
-  ────────────────────────────────────────────────────────── */
-  let fid_counter = 0;
-
-  const S = {
-    features:   [],
-    markers:    new Map(),
-    groups:     {},
-    visible:    { 1: true, 2: true, 3: true, w: true },
-    totals:     { 1: 0, 2: 0, 3: 0, w: 0 },
-    filterKec:  '',
-    filterOrde: '',
-    dataBounds: null,
-    userMk:     null,
-    userCircle: null,
-    highlighted: null,
-    basemap:    'sat',   // ← satellite as default
-    located:    false,
-  };
-
-  /* ──────────────────────────────────────────────────────────
-     MAP INIT  — satellite tile loaded first
-  ────────────────────────────────────────────────────────── */
-  const map = L.map('map', {
-    zoomControl: false,
-    attributionControl: true,
-    center: [1.0, 101.0],
-    zoom: 8,
-  });
-
-  const tiles = {
-    osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
-      maxZoom: 19,
-    }),
-    sat: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles &copy; <a href="https://www.esri.com/" target="_blank">Esri</a> — Esri, Maxar, Earthstar Geographics',
-      maxZoom: 19,
-    }),
-  };
-
-  // Satellite is default
-  tiles.sat.addTo(map);
-
-  // Layer groups sit above basemap
-  SOURCES.forEach(src => {
-    S.groups[src.orde] = L.layerGroup().addTo(map);
-  });
-
-  /* ──────────────────────────────────────────────────────────
-     UTILITIES
-  ────────────────────────────────────────────────────────── */
-  function esc(v) {
-    return String(v)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
-  function clean(v) {
-    if (v === null || v === undefined) return null;
-    const s = String(v).trim();
-    if (s === '' || s === 'null' || s === 'undefined' || s === '0') return null;
-    if (/^\s+$/.test(s)) return null;
-    return s;
-  }
-
-  function fmtNum(v) {
-    const n = parseFloat(v);
-    if (isNaN(n)) return null;
-    return n.toFixed(4);
-  }
-
-  function showToast(msg, ms) {
-    const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.classList.add('show');
-    clearTimeout(el._tid);
-    el._tid = setTimeout(() => el.classList.remove('show'), ms || 2400);
-  }
-
-  function hideLoading() {
-    const el = document.getElementById('loading');
-    if (!el) return;
-    el.style.transition = 'opacity .4s';
-    el.style.opacity = '0';
-    setTimeout(() => el.remove(), 420);
-  }
-
-  function setLoadMsg(txt) {
-    const el = document.getElementById('loading-msg');
-    if (el) el.textContent = txt;
-  }
-
-  function showError(html) {
-    const el = document.getElementById('err-banner');
-    el.style.display = 'block';
-    el.innerHTML = '⚠️ ' + html;
-  }
-
-  /* ──────────────────────────────────────────────────────────
-     FETCH WITH PATH FALLBACK
-  ────────────────────────────────────────────────────────── */
-  async function fetchWithFallback(paths, label) {
-    const tried = [];
-    for (const p of paths) {
-      try {
-        const res = await fetch(p);
-        if (res.ok) {
-          console.log(`[BM Locator] ${label} → ${p}`);
-          return res;
-        }
-        tried.push(`${p} (HTTP ${res.status})`);
-      } catch (e) {
-        tried.push(`${p} (${e.message})`);
-      }
-    }
-    throw new Error(`Semua path gagal: ${tried.join(', ')}`);
-  }
-
-  /* ──────────────────────────────────────────────────────────
-     LOAD GEOJSON
-  ────────────────────────────────────────────────────────── */
-  async function loadAll() {
-    const latLngs = [];
-    const errors  = [];
-    let   loaded  = 0;
-
-    const jobs = SOURCES.map(async src => {
-      try {
-        setLoadMsg(`Memuat ${src.label}…`);
-        const res = await fetchWithFallback(src.paths, src.label);
-        const gj  = await res.json();
-
-        if (!gj || gj.type !== 'FeatureCollection' || !Array.isArray(gj.features)) {
-          throw new Error('Format GeoJSON tidak valid');
-        }
-
-        gj.features.forEach(feat => {
-          if (!feat || !feat.geometry) return;
-          const coords = feat.geometry.coordinates;
-          if (!Array.isArray(coords) || coords.length < 2) return;
-          const lng = coords[0], lat = coords[1];
-          if (!isFinite(lat) || !isFinite(lng)) return;
-          if (lat === 0 && lng === 0) return;
-
-          feat._fid   = ++fid_counter;
-          feat._orde  = src.orde;
-          feat._color = src.color;
-          feat._label = src.label;
-          feat._isWell = src.isWell;
-
-          S.features.push(feat);
-          S.totals[src.orde]++;
-          latLngs.push([lat, lng]);
-          addMarker(feat, lat, lng, src);
-        });
-
-        loaded++;
-      } catch (err) {
-        console.warn(`[BM Locator] ${src.label}:`, err);
-        // Well missing is non-fatal — show toggle with 0 count
-        if (!src.isWell) {
-          errors.push(`<strong>${src.label}</strong>: ${esc(err.message)}`);
-        }
-      }
-    });
-
-    await Promise.all(jobs);
-
-    if (latLngs.length > 0) {
-      S.dataBounds = L.latLngBounds(latLngs);
-      map.fitBounds(S.dataBounds, { padding: [40, 40] });
+    let bodyRows = '';
+    if (isRS) {
+      bodyRows = `
+        ${row('Rumah Sakit', p.rs || p.name)}
+        ${row('Jenis', p.jenis_rs)}
+        ${row('Kelas', p.kelas_rs)}
+        ${row('Alamat', p.alamat)}
+        ${row('Telepon', p.tlpn)}
+        ${row('Email', p.email)}
+      `;
+    } else {
+      bodyRows = `
+        ${row('Nama', p.name)}
+        ${row('Tipe', p.amenity)}
+        ${row('Jalan', p.addr_stree)}
+        ${row('Kota', p.addr_city)}
+        ${row('Telepon', p.phone)}
+      `;
     }
 
-    buildKecFilter();
-    updateAll();
+    const emoji = ES_EMOJI[String(orde)] || '📍';
+    const catLabel = feat._label;
 
-    if (errors.length) {
-      showError(
-        'Beberapa file gagal dimuat:<br>' + errors.join('<br>') +
-        '<br><small>Pastikan file <code>ORDE_1.json</code>, <code>ORDE_2.json</code>, ' +
-        '<code>ORDE_3.json</code> ada di root repo atau folder <code>data/</code>.</small>'
-      );
-    }
-
-    if (loaded === 0) {
-      showError(
-        '<strong>Tidak ada data yang berhasil dimuat.</strong><br>' +
-        'Akses aplikasi melalui Vercel/server, bukan via <code>file://</code>.'
-      );
-    }
-
-    hideLoading();
+    return `
+<div>
+  <div class="pu-head" style="background:${color}">
+    <div class="pu-pill">${emoji} ${esc(catLabel.toUpperCase())}</div>
+    <div class="pu-title">${esc(name)}</div>
+    ${addrLine ? `<div class="pu-sub">📍 ${esc(addrLine)}</div>` : ''}
+  </div>
+  <div class="pu-body">
+    ${bodyRows}
+    <div class="pu-row"><span class="pu-key">Koordinat</span><span class="pu-val">${lat.toFixed(6)}, ${lng.toFixed(6)}</span></div>
+  </div>
+  <div class="pu-foot">
+    <div class="pu-foot-row">
+      <button class="pu-btn" onclick="gNav(${lat},${lng})">🧭 Directions</button>
+      <button class="pu-btn" onclick="gCopy(${lat},${lng})">📋 Copy</button>
+    </div>
+  </div>
+</div>`;
   }
+}
 
-  /* ──────────────────────────────────────────────────────────
-     CREATE MARKER  — white outline for satellite readability
-  ────────────────────────────────────────────────────────── */
-  function addMarker(feat, lat, lng, src) {
-    const baseStyle = src.isWell ? WELL_BASE : BASE_STYLE;
-    const mk = L.circleMarker([lat, lng], {
-      ...baseStyle,
-      fillColor: src.color,
-    });
-
-    mk._fid     = feat._fid;
-    mk._feature = feat;
-    mk._isWell  = src.isWell;
-    mk.on('click', () => openPopup(feat, mk));
-
-    S.markers.set(feat._fid, mk);
-    S.groups[src.orde].addLayer(mk);
+/* ═══════════════════════════════════════════════════════
+   HIGHLIGHT
+═══════════════════════════════════════════════════════ */
+function highlightFeature(fid) {
+  // un-highlight previous
+  if (S.highlighted !== null && S.highlighted !== fid) {
+    const prev = S.features.find(f => f._fid === S.highlighted);
+    if (prev) unhighlightFeature(prev);
   }
+  S.highlighted = fid;
+  const feat = S.features.find(f => f._fid === fid);
+  if (!feat) return;
+  const mk = S.markers.get(fid);
+  if (!mk) return;
+  if (feat._category === 'bm') {
+    mk.setStyle({ weight:4, color:'#fff', fillOpacity:1, radius:8 });
+  } else {
+    const el = mk.getElement();
+    if (el) el.classList.add('es-hl');
+  }
+}
+function unhighlightFeature(feat) {
+  const mk = S.markers.get(feat._fid);
+  if (!mk) return;
+  if (feat._category === 'bm') {
+    mk.setStyle({ weight:2.5, color:'#FFFFFF', fillOpacity:0.92, radius:6 });
+  } else {
+    const el = mk.getElement();
+    if (el) el.classList.remove('es-hl');
+  }
+}
 
-  /* ──────────────────────────────────────────────────────────
-     FILTER LOGIC
-  ────────────────────────────────────────────────────────── */
-  function featureVisible(feat) {
-    if (!S.visible[feat._orde]) return false;
-    // Orde filter only applies to BM layers, not wells
-    if (!feat._isWell && S.filterOrde !== '' && String(feat._orde) !== S.filterOrde) return false;
+/* ═══════════════════════════════════════════════════════
+   FLY TO FEATURE
+═══════════════════════════════════════════════════════ */
+function flyTo(fid) {
+  const feat = S.features.find(f => f._fid === fid);
+  if (!feat) return;
+  const [lng, lat] = feat._coords;
+  map.flyTo([lat, lng], 15, { duration:1 });
+  highlightFeature(fid);
+  const mk = S.markers.get(fid);
+  if (mk) setTimeout(() => mk.openPopup(), 900);
+}
+
+/* ═══════════════════════════════════════════════════════
+   FIND NEAREST BM (from popup)
+═══════════════════════════════════════════════════════ */
+function findNearestBM(lat, lng) {
+  map.closePopup();
+  nearestUserLat = lat;
+  nearestUserLng = lng;
+  showNearestPanel('bm');
+}
+
+/* ═══════════════════════════════════════════════════════
+   FEATURE VISIBILITY
+═══════════════════════════════════════════════════════ */
+function featureVisible(feat) {
+  if (!S.visible[feat._orde]) return false;
+  if (feat._category === 'bm') {
+    if (S.filterOrde !== '' && String(feat._orde) !== S.filterOrde) return false;
     if (S.filterKec !== '') {
       const k = clean((feat.properties || {}).Kecamatan);
       if (!k || k.toLowerCase() !== S.filterKec.toLowerCase()) return false;
     }
-    return true;
   }
+  return true;
+}
 
-  function applyFilters() {
-    let vis = 0;
-    S.features.forEach(feat => {
-      const mk   = S.markers.get(feat._fid);
-      if (!mk) return;
-      const show = featureVisible(feat);
-      if (show) {
-        if (!S.groups[feat._orde].hasLayer(mk)) S.groups[feat._orde].addLayer(mk);
-        vis++;
-      } else {
-        if (S.groups[feat._orde].hasLayer(mk)) S.groups[feat._orde].removeLayer(mk);
-      }
-    });
-    updateStats(vis);
-    updateCounts();
-    syncResetBtn();
-  }
+function applyVisibility() {
+  S.features.forEach(feat => {
+    const mk = S.markers.get(feat._fid);
+    if (!mk) return;
+    const vis = featureVisible(feat);
+    const grp = S.groups[String(feat._orde)];
+    if (vis) { if (!grp.hasLayer(mk)) grp.addLayer(mk); }
+    else     { if (grp.hasLayer(mk)) grp.removeLayer(mk); }
+  });
+  updateCounts();
+}
 
-  function updateAll() { applyFilters(); }
+function updateCounts() {
+  const cnts = { 1:0, 2:0, 3:0, rs:0, pl:0, pd:0 };
+  S.features.forEach(feat => {
+    if (featureVisible(feat)) cnts[feat._orde]++;
+  });
+  ['1','2','3'].forEach(k => {
+    const el = document.getElementById('cnt-'+k);
+    if (el) el.textContent = cnts[k];
+  });
+  ['rs','pl','pd'].forEach(k => {
+    const el = document.getElementById('cnt-'+k);
+    if (el) el.textContent = cnts[k];
+  });
+}
 
-  function syncResetBtn() {
-    const hasFilter = S.filterKec !== '' || S.filterOrde !== '';
-    const btn = document.getElementById('btn-reset-filter');
-    btn.classList.toggle('visible', hasFilter);
-  }
+function updateStats() {
+  ['1','2','3'].forEach(k => {
+    const el = document.getElementById('sn-'+k);
+    if (el) el.textContent = S.totals[k] ?? 0;
+  });
+  ['rs','pl','pd'].forEach(k => {
+    const el = document.getElementById('sn-'+k);
+    if (el) el.textContent = S.totals[k] ?? 0;
+  });
+}
 
-  /* ──────────────────────────────────────────────────────────
-     STATS
-  ────────────────────────────────────────────────────────── */
-  function updateStats(visibleCount) {
-    document.getElementById('sn-1').textContent = S.totals[1] || 0;
-    document.getElementById('sn-2').textContent = S.totals[2] || 0;
-    document.getElementById('sn-3').textContent = S.totals[3] || 0;
-    document.getElementById('sn-w').textContent = S.totals['w'] || 0;
-    const total = S.features.length;
-    const note  = document.getElementById('stats-note');
-    note.textContent = (visibleCount !== undefined && visibleCount !== total)
-      ? `Menampilkan ${visibleCount} dari ${total} titik`
-      : `Total: ${total} titik (BM + Well)`;
-  }
+/* ═══════════════════════════════════════════════════════
+   KECAMATAN FILTER BUILD
+═══════════════════════════════════════════════════════ */
+function buildKecFilter() {
+  const kecSet = new Set();
+  S.features.forEach(f => {
+    if (f._category !== 'bm') return;
+    const k = clean((f.properties || {}).Kecamatan);
+    if (k) kecSet.add(k);
+  });
+  const sorted = [...kecSet].sort();
+  const sel = document.getElementById('fil-kec');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Semua Kecamatan</option>';
+  sorted.forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = k;
+    sel.appendChild(opt);
+  });
+  if (prev && sorted.includes(prev)) sel.value = prev;
+}
 
-  function updateCounts() {
-    [1, 2, 3, 'w'].forEach(o => {
-      const n  = S.features.filter(f => f._orde === o && featureVisible(f)).length;
-      const el = document.getElementById(`cnt-${o}`);
-      if (el) el.textContent = n;
-    });
-  }
-
-  /* ──────────────────────────────────────────────────────────
-     KECAMATAN FILTER BUILD
-  ────────────────────────────────────────────────────────── */
-  function buildKecFilter() {
-    const seen = new Set(), vals = [];
-    S.features.forEach(f => {
-      const k = clean((f.properties || {}).Kecamatan);
-      if (k && !seen.has(k.toLowerCase())) { seen.add(k.toLowerCase()); vals.push(k); }
-    });
-    vals.sort((a, b) => a.localeCompare(b, 'id'));
-    const sel = document.getElementById('fil-kec');
-    vals.forEach(v => {
-      const o = document.createElement('option');
-      o.value = v; o.textContent = v;
-      sel.appendChild(o);
-    });
-  }
-
-  /* ──────────────────────────────────────────────────────────
-     POPUP
-  ────────────────────────────────────────────────────────── */
-  function openPopup(feat, mk) {
-    const p   = feat.properties || {};
-    const [lng, lat] = feat.geometry.coordinates;
-
-    highlightMk(mk, feat._color);
-
-    function row(label, rawVal, formatter) {
-      let val = clean(rawVal);
-      if (!val) return '';
-      if (formatter) val = formatter(val) || val;
-      return `<div class="pu-row"><span class="pu-k">${label}</span><span class="pu-v">${esc(val)}</span></div>`;
-    }
-
-    let html;
-
-    if (feat._isWell) {
-      /* ── Well popup ── */
-      const statusColor = (clean(p.Status) || '').toLowerCase() === 'non-aktif' ? '#EF4444' : '#22C55E';
-      html = `
-        <div class="pu-head" style="background:${feat._color}">
-          <div class="pu-orde-pill">⬤ ${esc(feat._label)}</div>
-          <div class="pu-title">${esc(clean(p.Nama_Well) || clean(p.Well_ID) || '(Tanpa Nama)')}</div>
-          ${clean(p.Kecamatan) ? `<div class="pu-kec">📍 ${esc(clean(p.Kecamatan))}${clean(p.Kabupaten) ? ', ' + esc(clean(p.Kabupaten)) : ''}</div>` : ''}
-        </div>
-        <div class="pu-body">
-          ${row('Well ID',    p.Well_ID)}
-          ${row('Lokasi',     p.Lokasi)}
-          ${row('Kecamatan',  p.Kecamatan)}
-          ${row('Kabupaten',  p.Kabupaten)}
-          <div class="pu-row"><span class="pu-k">Status</span><span class="pu-v" style="color:${statusColor}">${esc(clean(p.Status) || '—')}</span></div>
-          ${row('Koordinat',  lat.toFixed(6) + ', ' + lng.toFixed(6))}
-        </div>
-        <div class="pu-foot">
-          <button class="pu-btn pu-nav" onclick="gNav(${lat},${lng})">🧭 Directions</button>
-          <button class="pu-btn pu-copy" onclick="gCopy(${lat},${lng})">📋 Salin</button>
-        </div>
-      `;
-    } else {
-      /* ── BM popup ── */
-      html = `
-        <div class="pu-head" style="background:${feat._color}">
-          <div class="pu-orde-pill">⬤ ${esc(feat._label)}</div>
-          <div class="pu-title">${esc(clean(p.Nama_BM) || clean(p.ID_Banchma) || '(Tanpa Nama)')}</div>
-          ${clean(p.Kecamatan) ? `<div class="pu-kec">📍 ${esc(clean(p.Kecamatan))}${clean(p.Kabupaten) ? ', ' + esc(clean(p.Kabupaten)) : ''}</div>` : ''}
-        </div>
-        <div class="pu-body">
-          ${row('Lokasi',          p.Lokasi)}
-          ${row('Desa',            p.Desa)}
-          ${row('Kecamatan',       p.Kecamatan)}
-          ${row('Northing (m)',    p.Northing__, fmtNum)}
-          ${row('Easting (m)',     p.Easting__m, fmtNum)}
-          ${row('Tinggi Elipsoid', p.Ellip_Heig, v => parseFloat(v).toFixed(3) + ' m')}
-          ${row('Tingkatan/Orde',  p.Tingkatan || feat._label)}
-          ${row('Koordinat',       lat.toFixed(6) + ', ' + lng.toFixed(6))}
-        </div>
-        <div class="pu-foot">
-          <button class="pu-btn pu-nav" onclick="gNav(${lat},${lng})">🧭 Directions</button>
-          <button class="pu-btn pu-copy" onclick="gCopy(${lat},${lng})">📋 Salin</button>
-        </div>
-      `;
-    }
-
-    mk.bindPopup(html, { maxWidth: 320, className: 'bm-popup' }).openPopup();
-  }
-
-  /* ──────────────────────────────────────────────────────────
-     HIGHLIGHT
-  ────────────────────────────────────────────────────────── */
-  function highlightMk(mk, color) {
-    if (S.highlighted && S.highlighted !== mk) {
-      const prev = S.highlighted;
-      const baseStyle = prev._isWell ? WELL_BASE : BASE_STYLE;
-      prev.setStyle({ ...baseStyle, fillColor: prev._feature._color });
-    }
-    const hlStyle = mk._isWell ? WELL_HL : HL_STYLE;
-    mk.setStyle({ ...hlStyle, fillColor: color });
-    S.highlighted = mk;
-  }
-
-  /* ──────────────────────────────────────────────────────────
-     GLOBAL HANDLERS (popup inline onclick)
-     NOTE: dir_action=navigate intentionally omitted — opens
-     Google Maps Directions without auto-starting navigation.
-  ────────────────────────────────────────────────────────── */
-  window.gNav = function (lat, lng) {
-    window.open(
-      `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
-      '_blank', 'noopener,noreferrer'
-    );
-  };
-
-  window.gCopy = function (lat, lng) {
-    const text = `${lat}, ${lng}`;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text)
-        .then(() => showToast('✅ Koordinat disalin'))
-        .catch(() => fallbackCopy(text));
-    } else {
-      fallbackCopy(text);
-    }
-  };
-
-  function fallbackCopy(text) {
+/* ═══════════════════════════════════════════════════════
+   LOAD DATA
+═══════════════════════════════════════════════════════ */
+async function tryFetch(paths) {
+  for (const p of paths) {
     try {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;';
-      document.body.appendChild(ta);
-      ta.focus(); ta.select();
-      const ok = document.execCommand('copy');
-      document.body.removeChild(ta);
-      showToast(ok ? '✅ Koordinat disalin' : '❌ Tidak dapat menyalin otomatis');
-    } catch { showToast('❌ Salin manual: ' + text, 5000); }
+      const r = await fetch(p);
+      if (r.ok) return await r.json();
+    } catch(e) {}
+  }
+  return null;
+}
+
+async function loadSource(src) {
+  const data = await tryFetch(src.paths);
+  if (!data) {
+    if (src.category === 'es') return []; // non-fatal
+    throw new Error('Gagal memuat ' + src.label);
   }
 
-  /* ──────────────────────────────────────────────────────────
-     SEARCH — searches BM fields + Well fields
-  ────────────────────────────────────────────────────────── */
-  function doSearch(q) {
-    const dd = document.getElementById('search-dropdown');
-    if (!q.trim()) { dd.style.display = 'none'; return; }
+  const feats = [];
+  const features = data.features || [];
 
-    const lq  = q.toLowerCase();
-    const hits = S.features.filter(featureVisible).filter(f => {
-      const p = f.properties || {};
-      if (f._isWell) {
-        return (clean(p.Nama_Well) || '').toLowerCase().includes(lq)
-            || (clean(p.Well_ID)   || '').toLowerCase().includes(lq)
-            || (clean(p.Kecamatan) || '').toLowerCase().includes(lq);
-      }
-      return (clean(p.Nama_BM)    || '').toLowerCase().includes(lq)
-          || (clean(p.ID_Banchma) || '').toLowerCase().includes(lq)
-          || (clean(p.Kecamatan)  || '').toLowerCase().includes(lq);
-    }).slice(0, 60);
-
-    if (!hits.length) {
-      dd.innerHTML = '<div class="sr-empty"><div class="sr-empty-icon">🔍</div>Tidak ada hasil yang cocok</div>';
+  features.forEach(feat => {
+    if (!feat.geometry) return;
+    let coords;
+    if (src.geomType === 'multipoint') {
+      // MultiPoint: use coordinates[0]
+      if (!feat.geometry.coordinates || !feat.geometry.coordinates[0]) return;
+      coords = feat.geometry.coordinates[0]; // [lng, lat]
     } else {
-      const colorMap = { 1: '#3B82F6', 2: '#22C55E', 3: '#F97316', w: '#8B5CF6' };
-      dd.innerHTML = hits.map(f => {
-        const p   = f.properties || {};
-        const nm  = f._isWell
-          ? esc(clean(p.Nama_Well) || clean(p.Well_ID) || '(Tanpa Nama)')
-          : esc(clean(p.Nama_BM) || clean(p.ID_Banchma) || '(Tanpa Nama)');
-        const kec = esc(clean(p.Kecamatan) || '—');
-        return `<div class="sr-item" data-fid="${f._fid}" tabindex="0" role="option">
-          <div class="sr-dot" style="background:${colorMap[f._orde]}"></div>
-          <div class="sr-info">
-            <div class="sr-name">${nm}</div>
-            <div class="sr-meta">${kec}</div>
-          </div>
-          <span class="sr-badge badge-${f._orde}">${esc(f._label)}</span>
-        </div>`;
-      }).join('');
-
-      dd.querySelectorAll('.sr-item').forEach(el => {
-        const activate = () => {
-          flyTo(parseInt(el.dataset.fid));
-          dd.style.display = 'none';
-          document.getElementById('search-input').value = el.querySelector('.sr-name').textContent;
-          document.getElementById('search-clear').style.display = 'flex';
-          // On mobile: close panel so user can see the map
-          if (window.innerWidth <= 700) collapsePanel();
-        };
-        el.addEventListener('click', activate);
-        el.addEventListener('keydown', e => { if (e.key === 'Enter') activate(); });
-      });
+      // Point or BM GeoJSON
+      if (!feat.geometry.coordinates) return;
+      coords = feat.geometry.coordinates; // [lng, lat]
     }
 
-    dd.style.display = 'block';
-  }
+    const lng = coords[0], lat = coords[1];
+    if (isNaN(lat) || isNaN(lng)) return;
 
-  function flyTo(fid) {
-    const feat = S.features.find(f => f._fid === fid);
-    if (!feat) return;
-    const [lng, lat] = feat.geometry.coordinates;
-    const mk = S.markers.get(fid);
-    map.flyTo([lat, lng], Math.max(map.getZoom(), 15), { duration: 0.8 });
-    if (mk) setTimeout(() => highlightMk(mk, feat._color), 500);
-  }
+    const f = Object.assign({}, feat);
+    f._fid      = _fid++;
+    f._orde     = src.orde;
+    f._color    = src.color;
+    f._label    = src.label;
+    f._category = src.category;
+    f._coords   = [lng, lat];
 
-  /* ──────────────────────────────────────────────────────────
-     USER LOCATION
-  ────────────────────────────────────────────────────────── */
-  document.getElementById('fab-locate').addEventListener('click', () => {
-    if (!navigator.geolocation) { showToast('❌ Geolokasi tidak didukung'); return; }
-    if (S.located && S.userMk) { map.setView(S.userMk.getLatLng(), 15); return; }
-    showToast('📍 Mencari lokasi…');
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        const { latitude: lat, longitude: lng, accuracy } = pos.coords;
-        if (S.userCircle) {
-          S.userCircle.setLatLng([lat, lng]).setRadius(accuracy);
-          S.userMk.setLatLng([lat, lng]);
-        } else {
-          S.userCircle = L.circle([lat, lng], {
-            radius: accuracy, color: '#7C3AED', fillColor: '#7C3AED',
-            fillOpacity: 0.1, weight: 1,
-          }).addTo(map);
-          S.userMk = L.circleMarker([lat, lng], {
-            radius: 8, color: '#FFFFFF', fillColor: '#7C3AED', fillOpacity: 1, weight: 3,
-          }).addTo(map).bindTooltip('Lokasi Anda', { direction: 'top' });
-        }
-        map.flyTo([lat, lng], 15);
-        S.located = true;
-        document.getElementById('fab-locate').classList.add('on');
-        showToast('✅ Lokasi ditemukan');
-      },
-      err => {
-        const msgs = {
-          1: '❌ Izin lokasi ditolak.',
-          2: '❌ Posisi tidak tersedia.',
-          3: '❌ Waktu permintaan habis.',
-        };
-        showToast(msgs[err.code] || '❌ Gagal mendapatkan lokasi', 3500);
-      },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
-    );
+    feats.push(f);
   });
 
-  /* ──────────────────────────────────────────────────────────
-     PANEL TOGGLE — desktop + mobile
-  ────────────────────────────────────────────────────────── */
-  const panel     = document.getElementById('panel');
-  const toggleBtn = document.getElementById('toggle-btn');
-  const mobHandle = document.getElementById('mob-handle');
-  const mobLabel  = document.getElementById('mob-handle-label');
-  let panelOpen   = true;
+  return feats;
+}
 
-  function expandPanel() {
-    panelOpen = true;
-    panel.classList.remove('collapsed');
-    toggleBtn.setAttribute('aria-expanded', 'true');
-    mobHandle.setAttribute('aria-expanded', 'true');
-    mobLabel.textContent = 'Tutup Panel';
-    mobHandle.classList.add('panel-open');
-    mobHandle.querySelector('svg polyline').setAttribute('points', '3,6 8,11 13,6');
-    setTimeout(() => map.invalidateSize(), 340);
-  }
+async function loadAll() {
+  setLoadMsg('Memuat layer benchmark…');
+  const allPromises = SOURCES.map(src => loadSource(src).catch(() => []));
+  const results = await Promise.all(allPromises);
 
-  function collapsePanel() {
-    panelOpen = false;
-    panel.classList.add('collapsed');
-    toggleBtn.setAttribute('aria-expanded', 'false');
-    mobHandle.setAttribute('aria-expanded', 'false');
-    mobLabel.textContent = 'Buka Panel';
-    mobHandle.classList.remove('panel-open');
-    mobHandle.querySelector('svg polyline').setAttribute('points', '3,10 8,5 13,10');
-    setTimeout(() => map.invalidateSize(), 340);
-  }
-
-  toggleBtn.addEventListener('click', () => panelOpen ? collapsePanel() : expandPanel());
-  mobHandle.addEventListener('click', () => panelOpen ? collapsePanel() : expandPanel());
-
-  // Touch-to-drag on mobile panel header
-  (function () {
-    let startY = 0, isDragging = false;
-    const header = document.getElementById('panel-header');
-
-    header.addEventListener('touchstart', e => {
-      startY = e.touches[0].clientY;
-      isDragging = true;
-    }, { passive: true });
-
-    header.addEventListener('touchend', e => {
-      if (!isDragging) return;
-      isDragging = false;
-      const dy = e.changedTouches[0].clientY - startY;
-      if (dy > 50) collapsePanel();
-      else if (dy < -30) expandPanel();
-    }, { passive: true });
-  })();
-
-  window.addEventListener('resize', () => {
-    setTimeout(() => map.invalidateSize(), 80);
-  });
-
-  /* ──────────────────────────────────────────────────────────
-     BASEMAP SWITCHER — satellite is default
-  ────────────────────────────────────────────────────────── */
-  function switchBase(to) {
-    if (S.basemap === to) return;
-    map.removeLayer(tiles[S.basemap]);
-    tiles[to].addTo(map);
-    tiles[to].bringToBack();
-    S.basemap = to;
-    document.getElementById('bm-osm').classList.toggle('active', to === 'osm');
-    document.getElementById('bm-osm').setAttribute('aria-pressed', to === 'osm');
-    document.getElementById('bm-sat').classList.toggle('active', to === 'sat');
-    document.getElementById('bm-sat').setAttribute('aria-pressed', to === 'sat');
-  }
-
-  document.getElementById('bm-osm').addEventListener('click', () => switchBase('osm'));
-  document.getElementById('bm-sat').addEventListener('click', () => switchBase('sat'));
-
-  /* ──────────────────────────────────────────────────────────
-     LAYER CHECKBOXES — BM orde 1/2/3 + Well
-  ────────────────────────────────────────────────────────── */
-  [1, 2, 3].forEach(o => {
-    document.getElementById(`chk-${o}`).addEventListener('change', function () {
-      S.visible[o] = this.checked;
-      applyFilters();
+  const bounds = [];
+  results.forEach((feats, i) => {
+    const src = SOURCES[i];
+    S.totals[src.orde] = feats.length;
+    feats.forEach(f => {
+      S.features.push(f);
+      createMarker(f);
+      bounds.push([f._coords[1], f._coords[0]]);
     });
   });
 
-  document.getElementById('chk-w').addEventListener('change', function () {
-    S.visible['w'] = this.checked;
-    applyFilters();
-  });
+  if (bounds.length > 0) {
+    S.dataBounds = L.latLngBounds(bounds);
+    map.fitBounds(S.dataBounds, { padding:[30, 30] });
+  }
 
-  /* ──────────────────────────────────────────────────────────
-     FILTER SELECTS
-  ────────────────────────────────────────────────────────── */
-  document.getElementById('fil-kec').addEventListener('change', function () {
-    S.filterKec = this.value;
-    applyFilters();
-    const q = document.getElementById('search-input').value;
-    if (q) doSearch(q);
-  });
+  buildKecFilter();
+  updateStats();
+  updateCounts();
+}
 
-  document.getElementById('fil-orde').addEventListener('change', function () {
-    S.filterOrde = this.value;
-    applyFilters();
-    const q = document.getElementById('search-input').value;
-    if (q) doSearch(q);
-  });
+/* ═══════════════════════════════════════════════════════
+   SEARCH
+═══════════════════════════════════════════════════════ */
+function doSearch(q) {
+  const qlo = q.toLowerCase().trim();
+  const resultsEl = document.getElementById('search-results');
+  if (!qlo) {
+    resultsEl.innerHTML = '';
+    resultsEl.classList.remove('visible');
+    return;
+  }
 
-  document.getElementById('btn-reset-filter').addEventListener('click', () => {
-    document.getElementById('fil-kec').value  = '';
-    document.getElementById('fil-orde').value = '';
-    S.filterKec = ''; S.filterOrde = '';
-    applyFilters();
-    const q = document.getElementById('search-input').value;
-    if (q) doSearch(q);
-  });
-
-  /* ──────────────────────────────────────────────────────────
-     SEARCH INPUT EVENTS
-  ────────────────────────────────────────────────────────── */
-  const searchInput = document.getElementById('search-input');
-  const searchClear = document.getElementById('search-clear');
-  const searchDD    = document.getElementById('search-dropdown');
-  let   srTimer;
-
-  searchInput.addEventListener('input', function () {
-    const q = this.value;
-    searchClear.style.display = q ? 'flex' : 'none';
-    clearTimeout(srTimer);
-    srTimer = setTimeout(() => doSearch(q), 180);
-  });
-
-  searchClear.addEventListener('click', () => {
-    searchInput.value = '';
-    searchClear.style.display = 'none';
-    searchDD.style.display = 'none';
-    searchInput.focus();
-  });
-
-  document.addEventListener('click', e => {
-    if (!document.getElementById('search-wrap').contains(e.target)) {
-      searchDD.style.display = 'none';
+  const matched = S.features.filter(f => {
+    const p = f.properties || {};
+    if (f._category === 'bm') {
+      return (
+        clean(p.Nama_BM).toLowerCase().includes(qlo) ||
+        clean(p.ID_Banchma).toLowerCase().includes(qlo) ||
+        clean(p.Kecamatan).toLowerCase().includes(qlo) ||
+        clean(p.Desa).toLowerCase().includes(qlo)
+      );
+    } else {
+      return (
+        clean(p.name).toLowerCase().includes(qlo) ||
+        clean(p.addr_city).toLowerCase().includes(qlo) ||
+        clean(p.rs).toLowerCase().includes(qlo)
+      );
     }
-  });
+  }).slice(0, 20);
 
-  /* ──────────────────────────────────────────────────────────
-     MAP FAB BUTTONS
-  ────────────────────────────────────────────────────────── */
-  document.getElementById('fab-in').addEventListener('click',  () => map.zoomIn());
-  document.getElementById('fab-out').addEventListener('click', () => map.zoomOut());
-  document.getElementById('fab-fit').addEventListener('click', () => {
-    if (S.dataBounds) map.fitBounds(S.dataBounds, { padding: [40, 40] });
-    else showToast('Belum ada data yang dimuat');
-  });
+  if (!matched.length) {
+    resultsEl.innerHTML = '<div class="sr-item" style="justify-content:center;color:var(--muted);font-size:11px;">Tidak ditemukan</div>';
+    resultsEl.classList.add('visible');
+    return;
+  }
 
-  /* ──────────────────────────────────────────────────────────
-     RESET HIGHLIGHT ON MAP CLICK
-  ────────────────────────────────────────────────────────── */
-  map.on('click', () => {
-    if (S.highlighted) {
-      const baseStyle = S.highlighted._isWell ? WELL_BASE : BASE_STYLE;
-      S.highlighted.setStyle({ ...baseStyle, fillColor: S.highlighted._feature._color });
-      S.highlighted = null;
+  resultsEl.innerHTML = matched.map(f => {
+    const p = f.properties || {};
+    let name, sub, badgeClass;
+    if (f._category === 'bm') {
+      name = clean(p.Nama_BM) || clean(p.ID_Banchma) || '?';
+      sub  = clean(p.Kecamatan) || '—';
+      badgeClass = 'badge-'+f._orde;
+    } else {
+      name = clean(p.name) || '?';
+      sub  = clean(p.addr_city) || clean(p.alamat) || f._label;
+      badgeClass = 'badge-'+f._orde;
     }
+    const label = f._category === 'bm' ? 'ORDE '+f._orde : f._label;
+    return `<div class="sr-item" onclick="flyTo(${f._fid})">
+      <div class="sr-dot" style="background:${f._color}"></div>
+      <div style="flex:1;min-width:0">
+        <div class="sr-name">${esc(name)}</div>
+        <div class="sr-sub">${esc(sub)}</div>
+      </div>
+      <span class="badge ${badgeClass}">${esc(label)}</span>
+    </div>`;
+  }).join('');
+  resultsEl.classList.add('visible');
+}
+
+document.getElementById('search-input').addEventListener('input', e => doSearch(e.target.value));
+
+/* ═══════════════════════════════════════════════════════
+   FILTERS
+═══════════════════════════════════════════════════════ */
+document.getElementById('fil-kec').addEventListener('change', e => {
+  S.filterKec = e.target.value;
+  applyVisibility();
+});
+document.getElementById('fil-orde').addEventListener('change', e => {
+  S.filterOrde = e.target.value;
+  applyVisibility();
+});
+document.getElementById('btn-reset-filter').addEventListener('click', () => {
+  S.filterKec = ''; S.filterOrde = '';
+  document.getElementById('fil-kec').value = '';
+  document.getElementById('fil-orde').value = '';
+  applyVisibility();
+  showToast('✅ Filter direset');
+});
+
+/* ═══════════════════════════════════════════════════════
+   LAYER TOGGLES
+═══════════════════════════════════════════════════════ */
+function bindLayerChk(id, orde) {
+  const chk = document.getElementById(id);
+  if (!chk) return;
+  chk.addEventListener('change', () => {
+    S.visible[orde] = chk.checked;
+    applyVisibility();
   });
+}
+bindLayerChk('chk-1', 1);
+bindLayerChk('chk-2', 2);
+bindLayerChk('chk-3', 3);
+bindLayerChk('chk-rs','rs');
+bindLayerChk('chk-pl','pl');
+bindLayerChk('chk-pd','pd');
 
-  /* ──────────────────────────────────────────────────────────
-     KICK OFF
-  ────────────────────────────────────────────────────────── */
-  loadAll();
+/* ═══════════════════════════════════════════════════════
+   LAYER GROUP COLLAPSE
+═══════════════════════════════════════════════════════ */
+document.querySelectorAll('.grp-toggle').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const grp = btn.dataset.grp;
+    const body = document.getElementById('grp-'+grp+'-body');
+    if (!body) return;
+    body.classList.toggle('collapsed');
+    btn.textContent = body.classList.contains('collapsed') ? '▶' : '▼';
+  });
+});
+// Also clicking header itself
+document.querySelectorAll('.layer-group-header').forEach(hdr => {
+  hdr.addEventListener('click', e => {
+    if (e.target.classList.contains('grp-toggle')) return;
+    const grp = hdr.id.replace('grp-','').replace('-hdr','');
+    const body = document.getElementById('grp-'+grp+'-body');
+    const btn  = hdr.querySelector('.grp-toggle');
+    if (!body) return;
+    body.classList.toggle('collapsed');
+    if (btn) btn.textContent = body.classList.contains('collapsed') ? '▶' : '▼';
+  });
+});
 
+/* ═══════════════════════════════════════════════════════
+   PANEL TOGGLE (desktop)
+═══════════════════════════════════════════════════════ */
+const panelEl = document.getElementById('panel');
+const toggleBtn = document.getElementById('toggle-btn');
+toggleBtn.addEventListener('click', () => {
+  panelEl.classList.toggle('collapsed');
+  toggleBtn.textContent = panelEl.classList.contains('collapsed') ? '›' : '‹';
+});
+
+/* ═══════════════════════════════════════════════════════
+   MOBILE BOTTOM SHEET
+═══════════════════════════════════════════════════════ */
+const mobBtn = document.getElementById('mob-toggle-btn');
+let panelOpen = false;
+mobBtn.addEventListener('click', () => {
+  panelOpen = !panelOpen;
+  if (panelOpen) { panelEl.classList.add('open'); mobBtn.textContent = 'Tutup Panel'; }
+  else           { panelEl.classList.remove('open'); mobBtn.textContent = 'Buka Panel'; }
+});
+
+/* ═══════════════════════════════════════════════════════
+   FAB ACTIONS
+═══════════════════════════════════════════════════════ */
+document.getElementById('fab-in').addEventListener('click', () => map.zoomIn());
+document.getElementById('fab-out').addEventListener('click', () => map.zoomOut());
+document.getElementById('fab-fit').addEventListener('click', () => {
+  if (S.dataBounds) map.fitBounds(S.dataBounds, { padding:[30,30] });
+});
+document.getElementById('fab-locate').addEventListener('click', () => {
+  if (!navigator.geolocation) { showToast('❌ Geolokasi tidak didukung'); return; }
+  showToast('📍 Mencari lokasi Anda…');
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude, lng = pos.coords.longitude;
+    if (S.userMk) map.removeLayer(S.userMk);
+    if (S.userCircle) map.removeLayer(S.userCircle);
+    S.userMk = L.circleMarker([lat, lng], {
+      radius:8, color:'#fff', weight:3, fillColor:'#2563EB', fillOpacity:1
+    }).addTo(map).bindPopup('📍 Lokasi Anda').openPopup();
+    S.userCircle = L.circle([lat, lng], {
+      radius: pos.coords.accuracy, color:'#2563EB', fillColor:'#3B82F6', fillOpacity:.1, weight:1
+    }).addTo(map);
+    map.flyTo([lat, lng], 14, { duration:1.2 });
+    S.located = true;
+  }, err => { showToast('❌ Gagal mendapatkan lokasi'); }, { enableHighAccuracy:true, timeout:12000 });
+});
+
+/* ═══════════════════════════════════════════════════════
+   NEAREST PANEL
+═══════════════════════════════════════════════════════ */
+let nearestUserLat = null, nearestUserLng = null, activeNpTab = 'bm';
+
+document.getElementById('fab-nearest').addEventListener('click', () => {
+  if (!navigator.geolocation) { showToast('❌ Geolokasi tidak didukung'); return; }
+  showToast('📍 Mencari lokasi…');
+  navigator.geolocation.getCurrentPosition(pos => {
+    nearestUserLat = pos.coords.latitude;
+    nearestUserLng = pos.coords.longitude;
+    showNearestPanel(activeNpTab);
+  }, err => { showToast('❌ Gagal mendapatkan lokasi'); }, { enableHighAccuracy:true, timeout:12000 });
+});
+
+document.getElementById('np-close-btn').addEventListener('click', () => {
+  document.getElementById('nearest-panel').style.display = 'none';
+});
+
+document.querySelectorAll('.np-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    if (nearestUserLat === null) { showToast('📍 Tekan 🎯 untuk mendapatkan lokasi terlebih dahulu'); return; }
+    renderNearestResults(tab.dataset.cat);
+  });
+});
+
+function showNearestPanel(cat) {
+  document.getElementById('nearest-panel').style.display = 'block';
+  renderNearestResults(cat || activeNpTab);
+}
+
+function renderNearestResults(cat) {
+  activeNpTab = cat;
+  document.querySelectorAll('.np-tab').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+
+  let pool;
+  if (cat === 'bm') pool = S.features.filter(f => f._category === 'bm');
+  else pool = S.features.filter(f => f._orde === cat);
+
+  const withDist = pool.map(f => {
+    const [lng, lat] = f._coords;
+    return { f, dist: haversine(nearestUserLat, nearestUserLng, lat, lng) };
+  }).sort((a,b) => a.dist - b.dist).slice(0, 3);
+
+  const container = document.getElementById('np-results');
+  if (!withDist.length) {
+    container.innerHTML = '<div class="np-empty">Tidak ada data tersedia</div>';
+    return;
+  }
+
+  container.innerHTML = withDist.map(({ f, dist }) => {
+    const p = f.properties || {};
+    const name = f._category === 'bm'
+      ? (clean(p.Nama_BM) || clean(p.ID_Banchma) || '?')
+      : (clean(p.name) || '?');
+    const sub = f._category === 'bm'
+      ? (clean(p.Kecamatan) || '—')
+      : f._label;
+    const distStr = dist >= 1000 ? (dist/1000).toFixed(1)+' km' : Math.round(dist)+' m';
+    return `<div class="np-item">
+      <div class="np-dot" style="background:${f._color}"></div>
+      <div class="np-info">
+        <div class="np-name">${esc(name)}</div>
+        <div class="np-sub">${esc(sub)} · ${distStr}</div>
+      </div>
+      <div class="np-actions">
+        <button onclick="flyTo(${f._fid})" class="np-btn" title="Zoom ke lokasi">🔍</button>
+        <button onclick="gNav(${f._coords[1]},${f._coords[0]})" class="np-btn" title="Navigasi">🧭</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════
+   TOUCH DRAG / PANEL HEADER (mobile feel)
+═══════════════════════════════════════════════════════ */
+(function() {
+  let startX, isDragging = false;
+  const ph = document.getElementById('panel-header');
+  if (!ph) return;
+  ph.addEventListener('touchstart', e => { startX = e.touches[0].clientX; isDragging = true; }, { passive:true });
+  ph.addEventListener('touchmove', e => {
+    if (!isDragging) return;
+    const dx = e.touches[0].clientX - startX;
+    if (dx < -40) {
+      panelEl.classList.remove('open');
+      mobBtn.textContent = 'Buka Panel';
+      panelOpen = false;
+      isDragging = false;
+    }
+  }, { passive:true });
+  ph.addEventListener('touchend', () => isDragging = false, { passive:true });
 })();
+
+/* ═══════════════════════════════════════════════════════
+   CLOSE SEARCH ON MAP CLICK
+═══════════════════════════════════════════════════════ */
+map.on('click', () => {
+  document.getElementById('search-results').classList.remove('visible');
+  document.getElementById('search-input').value = '';
+});
+
+/* ═══════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════ */
+loadAll()
+  .then(() => {
+    setLoadMsg('Selesai!');
+    setTimeout(hideLoading, 500);
+  })
+  .catch(err => {
+    showError(err.message || 'Gagal memuat data');
+    hideLoading();
+  });
 </script>
 </body>
 </html>
