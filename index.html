@@ -4,317 +4,1254 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0F172A" />
-  <meta name="description" content="PTSI Benchmark Locator — Professional platform for locating and viewing benchmark control points and well locations across the Blok Rokan survey area." />
-  <title>Benchmark Locator — PTSI</title>
+  <meta name="description" content="BM Locator — Professional geospatial platform for locating and visualizing geodetic benchmarks and emergency facilities across the Blok Rokan survey area. Built by PTSI." />
+  <title>BM Locator — PTSI Blok Rokan</title>
   <link rel="icon" type="image/jpeg" href="logoptsi.jpg" />
 
   <style>
     /* ================================================================
-       TOKENS
+       DESIGN TOKENS — matches webgis.html exactly
     ================================================================ */
     :root {
-      --accent:       #2563EB;
-      --accent-dark:  #1D4ED8;
-      --accent-light: #EFF6FF;
-      --white:        #FFFFFF;
-      --heading:      #0F172A;
-      --body:         #475569;
-      --muted:        rgba(255,255,255,.55);
-      --border-glass: rgba(255,255,255,.15);
-
-      --dur:        220ms;
-      --ease-out:   cubic-bezier(.2,.8,.4,1);
-      --ease-spring: cubic-bezier(.34,1.56,.64,1);
-
+      --accent:        #2563EB;
+      --accent-dark:   #1D4ED8;
+      --accent-xdark:  #1E3A8A;
+      --accent-light:  #EFF6FF;
+      --c1: #3B82F6;
+      --c2: #22C55E;
+      --c3: #F97316;
+      --crs: #EF4444;
+      --cpl: #1D4ED8;
+      --cpd: #F59E0B;
+      --white:     #FFFFFF;
+      --surface:   #F8FAFC;
+      --surface2:  #F1F5F9;
+      --border:    #E2E8F0;
+      --border2:   #CBD5E1;
+      --muted:     #94A3B8;
+      --body:      #475569;
+      --heading:   #0F172A;
+      --sh-sm: 0 2px 8px rgba(0,0,0,.08);
+      --sh-md: 0 4px 16px rgba(0,0,0,.10), 0 1px 4px rgba(0,0,0,.06);
+      --sh-lg: 0 12px 32px rgba(0,0,0,.12), 0 4px 8px rgba(0,0,0,.06);
+      --radius-sm: 6px;
       --radius:    10px;
-      --radius-lg: 16px;
-      --sh-btn:    0 4px 20px rgba(37,99,235,.45);
+      --radius-lg: 14px;
+      --radius-xl: 20px;
+      --dur: 220ms;
+      --ease-out: cubic-bezier(.2,.8,.4,1);
+      --ease-spring: cubic-bezier(.34,1.56,.64,1);
     }
 
     @media (prefers-reduced-motion: reduce) {
       :root { --dur: 0ms; }
+      * { animation: none !important; transition: none !important; }
     }
 
     /* ================================================================
-       RESET
+       RESET & BASE
     ================================================================ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html, body {
-      height: 100%;
+    html { scroll-behavior: smooth; }
+    body {
       font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--body);
+      background: var(--white);
       -webkit-tap-highlight-color: transparent;
     }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    button { font-family: inherit; cursor: pointer; }
 
     /* ================================================================
-       HERO — full-viewport
-       Background image loads from backgroundhome.png if present;
-       CSS gradient is always shown as a fallback underneath.
+       NAV BAR
+    ================================================================ */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 900;
+      background: rgba(15,23,42,.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      transition: background var(--dur);
+    }
+
+    .nav-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .nav-logo {
+      width: 32px; height: 32px;
+      border-radius: 7px;
+      overflow: hidden;
+      background: var(--white);
+      flex-shrink: 0;
+    }
+    .nav-logo img { width: 100%; height: 100%; object-fit: cover; }
+
+    .nav-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -.2px;
+    }
+    .nav-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,.45);
+      display: none;
+    }
+    @media (min-width: 480px) { .nav-sub { display: block; } }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .nav-link {
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255,255,255,.65);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      transition: color var(--dur), background var(--dur);
+    }
+    .nav-link:hover { color: var(--white); background: rgba(255,255,255,.08); }
+
+    .nav-cta {
+      padding: 7px 16px;
+      background: var(--accent);
+      color: var(--white) !important;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 700;
+      transition: background var(--dur), transform var(--dur) var(--ease-spring);
+    }
+    .nav-cta:hover { background: var(--accent-dark); transform: translateY(-1px); }
+
+    /* ================================================================
+       HERO SECTION
     ================================================================ */
     .hero {
       min-height: 100dvh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       position: relative;
       overflow: hidden;
-
-      /* Gradient fallback (always visible as base) */
+      padding: 100px 24px 80px;
+      text-align: center;
       background:
         url('backgroundhome.png') center / cover no-repeat,
-        linear-gradient(135deg, #0F172A 0%, #1E3A8A 55%, #0F172A 100%);
+        linear-gradient(135deg, #0F172A 0%, #1E3A8A 55%, #0C1A4A 100%);
     }
 
-    /* Dark overlay for text readability */
     .hero-overlay {
-      position: absolute;
-      inset: 0;
+      position: absolute; inset: 0;
       background: linear-gradient(
         to bottom,
-        rgba(15,23,42,.55) 0%,
-        rgba(15,23,42,.70) 60%,
-        rgba(15,23,42,.80) 100%
+        rgba(15,23,42,.50) 0%,
+        rgba(15,23,42,.68) 50%,
+        rgba(15,23,42,.88) 100%
       );
       pointer-events: none;
     }
 
-    /* Subtle radial glow behind content */
     .hero-glow {
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse 70% 60% at 50% 45%, rgba(37,99,235,.22) 0%, transparent 70%);
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 65% 55% at 50% 44%, rgba(37,99,235,.20) 0%, transparent 70%);
       pointer-events: none;
     }
 
-    /* ================================================================
-       CONTENT
-    ================================================================ */
     .hero-content {
       position: relative;
       z-index: 10;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      padding: 48px 24px 56px;
-      max-width: 560px;
-      animation: fadeUp .6s var(--ease-out) both;
+      max-width: 640px;
+      animation: fadeUp .7s var(--ease-out) both;
     }
 
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
+      from { opacity: 0; transform: translateY(22px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* ================================================================
-       LOGO
-    ================================================================ */
-    .logo-wrap {
-      width: 88px; height: 88px;
-      border-radius: 20px;
+    .hero-logo-wrap {
+      width: 80px; height: 80px;
+      border-radius: 18px;
       overflow: hidden;
       background: var(--white);
-      display: flex; align-items: center; justify-content: center;
       box-shadow: 0 12px 40px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,.15);
-      margin-bottom: 28px;
-      animation: fadeUp .6s .1s var(--ease-out) both;
+      margin: 0 auto 24px;
+      animation: fadeUp .7s .08s var(--ease-out) both;
     }
+    .hero-logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
 
-    .logo-wrap img {
-      width: 100%; height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    /* ================================================================
-       TYPOGRAPHY
-    ================================================================ */
     .hero-eyebrow {
       font-size: 11px;
       font-weight: 700;
-      letter-spacing: 2px;
+      letter-spacing: 2.5px;
       text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 12px;
-      animation: fadeUp .6s .15s var(--ease-out) both;
+      color: rgba(255,255,255,.45);
+      margin-bottom: 14px;
+      animation: fadeUp .7s .12s var(--ease-out) both;
     }
 
     .hero-title {
-      font-size: clamp(28px, 6vw, 44px);
+      font-size: clamp(30px, 6.5vw, 50px);
       font-weight: 800;
       color: var(--white);
-      line-height: 1.15;
-      letter-spacing: -.5px;
-      margin-bottom: 16px;
-      animation: fadeUp .6s .2s var(--ease-out) both;
+      line-height: 1.12;
+      letter-spacing: -.8px;
+      margin-bottom: 18px;
+      animation: fadeUp .7s .16s var(--ease-out) both;
     }
 
-    .hero-title span {
-      /* accent underline on keyword */
-      background: linear-gradient(90deg, #60A5FA, #818CF8);
+    .hero-title .accent {
+      background: linear-gradient(90deg, #60A5FA 0%, #818CF8 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
 
     .hero-desc {
-      font-size: clamp(14px, 2.2vw, 16px);
-      color: var(--muted);
-      line-height: 1.7;
-      max-width: 440px;
-      margin-bottom: 36px;
-      animation: fadeUp .6s .25s var(--ease-out) both;
+      font-size: clamp(14px, 2vw, 17px);
+      color: rgba(255,255,255,.6);
+      line-height: 1.75;
+      max-width: 520px;
+      margin: 0 auto 36px;
+      animation: fadeUp .7s .20s var(--ease-out) both;
     }
 
-    /* ================================================================
-       CTA BUTTON
-    ================================================================ */
-    .btn-cta {
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      animation: fadeUp .7s .25s var(--ease-out) both;
+    }
+
+    .btn-primary {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 14px 32px;
+      padding: 14px 28px;
       background: var(--accent);
       color: var(--white);
       font-size: 15px;
       font-weight: 700;
       border-radius: var(--radius-lg);
-      text-decoration: none;
-      box-shadow: var(--sh-btn);
-      transition:
-        background var(--dur) var(--ease-out),
-        transform var(--dur) var(--ease-spring),
-        box-shadow var(--dur) var(--ease-out);
+      box-shadow: 0 4px 20px rgba(37,99,235,.45);
+      transition: background var(--dur), transform var(--dur) var(--ease-spring), box-shadow var(--dur);
       letter-spacing: -.1px;
-      animation: fadeUp .6s .3s var(--ease-out) both;
     }
-
-    .btn-cta:hover {
+    .btn-primary:hover {
       background: var(--accent-dark);
       transform: translateY(-2px);
-      box-shadow: 0 8px 32px rgba(37,99,235,.55);
+      box-shadow: 0 8px 30px rgba(37,99,235,.55);
     }
+    .btn-primary:active { transform: scale(.97); }
+    .btn-primary svg { width: 18px; height: 18px; }
 
-    .btn-cta:active { transform: scale(.97); }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 13px 22px;
+      background: rgba(255,255,255,.09);
+      color: rgba(255,255,255,.85);
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: var(--radius-lg);
+      border: 1.5px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(6px);
+      transition: background var(--dur), border-color var(--dur), color var(--dur);
+    }
+    .btn-secondary:hover {
+      background: rgba(255,255,255,.15);
+      border-color: rgba(255,255,255,.35);
+      color: var(--white);
+    }
+    .btn-secondary svg { width: 16px; height: 16px; }
 
-    .btn-cta svg { width: 18px; height: 18px; flex-shrink: 0; }
-
-    /* ================================================================
-       FEATURE CHIPS — three small badges below CTA
-    ================================================================ */
-    .feature-chips {
+    /* stat chips inside hero */
+    .hero-chips {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
       justify-content: center;
-      margin-top: 24px;
-      animation: fadeUp .6s .38s var(--ease-out) both;
+      margin-top: 28px;
+      animation: fadeUp .7s .32s var(--ease-out) both;
     }
 
-    .chip {
+    .hero-chip {
       display: flex;
       align-items: center;
       gap: 5px;
-      padding: 5px 12px;
-      border: 1px solid var(--border-glass);
+      padding: 5px 13px;
       border-radius: 99px;
+      border: 1px solid rgba(255,255,255,.14);
       background: rgba(255,255,255,.07);
-      backdrop-filter: blur(6px);
+      backdrop-filter: blur(4px);
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,.65);
+    }
+    .hero-chip strong { color: var(--white); }
+
+    /* scroll indicator */
+    .scroll-hint {
+      position: absolute;
+      bottom: 28px; left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      color: rgba(255,255,255,.35);
+      font-size: 11px;
+      animation: bobUp 2s ease-in-out infinite;
+    }
+    @keyframes bobUp { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-5px)} }
+    .scroll-hint svg { width: 18px; height: 18px; }
+
+    /* ================================================================
+       SHARED SECTION LAYOUT
+    ================================================================ */
+    .section-wrap {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 80px 24px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-size: clamp(22px, 4vw, 32px);
+      font-weight: 800;
+      color: var(--heading);
+      line-height: 1.2;
+      letter-spacing: -.4px;
+      margin-bottom: 14px;
+    }
+
+    .section-desc {
+      font-size: 15px;
+      color: var(--body);
+      line-height: 1.75;
+      max-width: 580px;
+    }
+
+    /* ================================================================
+       ABOUT SECTION
+    ================================================================ */
+    #about { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+      margin-top: 40px;
+    }
+
+    @media (max-width: 700px) {
+      .about-grid { grid-template-columns: 1fr; gap: 28px; }
+    }
+
+    .about-text p {
+      font-size: 15px;
+      color: var(--body);
+      line-height: 1.8;
+      margin-bottom: 14px;
+    }
+    .about-text p:last-child { margin-bottom: 0; }
+
+    .about-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .about-pill {
+      padding: 5px 14px;
+      border-radius: 99px;
+      background: var(--accent-light);
+      color: var(--accent-dark);
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid rgba(37,99,235,.12);
+    }
+
+    .about-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .about-stat {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .about-stat::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .about-stat.as1::before { background: var(--c1); }
+    .about-stat.as2::before { background: var(--c2); }
+    .about-stat.as3::before { background: var(--c3); }
+    .about-stat.as4::before { background: var(--crs); }
+
+    .as-n {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .as1 .as-n { color: var(--c1); }
+    .as2 .as-n { color: #16A34A; }
+    .as3 .as-n { color: #EA580C; }
+    .as4 .as-n { color: var(--crs); }
+
+    .as-l {
       font-size: 11px;
       font-weight: 600;
-      color: rgba(255,255,255,.7);
-      letter-spacing: .1px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .6px;
     }
 
-    .chip svg { width: 11px; height: 11px; opacity: .7; }
-
     /* ================================================================
-       FOOTER ATTRIBUTION
+       CAPABILITIES SECTION
     ================================================================ */
-    .hero-footer {
+    #capabilities { background: var(--white); }
+
+    .cap-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 48px;
+    }
+
+    @media (max-width: 640px) {
+      .cap-grid { grid-template-columns: 1fr; }
+    }
+
+    .cap-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 28px 24px 24px;
+      position: relative;
+      overflow: hidden;
+      transition: box-shadow var(--dur), transform var(--dur) var(--ease-out);
+    }
+
+    .cap-card:hover {
+      box-shadow: var(--sh-lg);
+      transform: translateY(-3px);
+    }
+
+    .cap-card::before {
+      content: '';
       position: absolute;
-      bottom: 18px;
-      left: 0; right: 0;
-      text-align: center;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+    }
+    .cap-card.bm::before { background: linear-gradient(90deg, var(--c1), var(--c2)); }
+    .cap-card.es::before { background: linear-gradient(90deg, var(--crs), var(--cpd)); }
+
+    .cap-icon {
+      font-size: 32px;
+      margin-bottom: 14px;
+      line-height: 1;
+    }
+
+    .cap-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--heading);
+      margin-bottom: 8px;
+      letter-spacing: -.2px;
+    }
+
+    .cap-desc {
+      font-size: 13px;
+      color: var(--body);
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .cap-features {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .cap-feat {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--body);
+    }
+
+    .cap-feat-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .bm .cap-feat-dot { background: var(--c1); }
+    .es .cap-feat-dot { background: var(--crs); }
+
+    /* ================================================================
+       WEBGIS PREVIEW SECTION
+    ================================================================ */
+    #preview { background: var(--heading); }
+
+    #preview .section-label { color: #60A5FA; }
+    #preview .section-title { color: var(--white); }
+    #preview .section-desc { color: rgba(255,255,255,.55); }
+
+    .preview-frame {
+      margin-top: 40px;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,.4);
+      border: 1px solid rgba(255,255,255,.08);
+      background: #1E293B;
+    }
+
+    /* Fake browser chrome */
+    .pf-chrome {
+      background: #1E293B;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+
+    .pf-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .pf-dot.r { background: #EF4444; }
+    .pf-dot.y { background: #F59E0B; }
+    .pf-dot.g { background: #22C55E; }
+
+    .pf-url {
+      flex: 1;
+      background: rgba(255,255,255,.07);
+      border-radius: 99px;
+      padding: 4px 14px;
       font-size: 11px;
-      color: rgba(255,255,255,.3);
-      z-index: 10;
+      color: rgba(255,255,255,.4);
+      margin-left: 8px;
+    }
+
+    /* Map preview mock */
+    .pf-map {
+      background: linear-gradient(135deg, #1a2a3a 0%, #0d1f2d 100%);
+      height: 360px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    @media (max-width: 600px) { .pf-map { height: 240px; } }
+
+    /* Map mock tiles */
+    .pf-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    /* Simulated markers */
+    .pf-mk {
+      position: absolute;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.8);
+      box-shadow: 0 0 8px rgba(0,0,0,.4);
+    }
+
+    /* Panel mock */
+    .pf-panel {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 160px;
+      background: rgba(255,255,255,.97);
+      border-right: 1px solid var(--border);
+      padding: 10px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .pf-ph {
+      background: var(--heading);
+      border-radius: 4px;
+      padding: 7px 8px;
+      margin-bottom: 4px;
+    }
+    .pf-ph-title { font-size: 8px; font-weight: 700; color: var(--white); }
+    .pf-ph-sub   { font-size: 7px; color: rgba(255,255,255,.4); margin-top: 1px; }
+
+    .pf-search {
+      height: 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+
+    .pf-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 0;
+    }
+    .pf-row-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .pf-row-line { height: 5px; background: var(--surface2); border-radius: 2px; flex: 1; }
+    .pf-row-cnt { width: 14px; height: 8px; background: var(--border); border-radius: 99px; flex-shrink: 0; }
+
+    .pf-sec { font-size: 6px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; padding: 4px 0 2px; }
+
+    .pf-cta {
+      position: absolute;
+      bottom: 40px; left: 50%; right: auto;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 12px 28px;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 4px 20px rgba(37,99,235,.5);
+      white-space: nowrap;
+      transition: background var(--dur), transform var(--dur) var(--ease-spring);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pf-cta:hover {
+      background: var(--accent-dark);
+      transform: translateX(-50%) translateY(-2px);
+    }
+    .pf-cta svg { width: 16px; height: 16px; }
+
+    /* ================================================================
+       HOW IT WORKS SECTION
+    ================================================================ */
+    #howitworks { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 48px;
+    }
+
+    @media (max-width: 640px) {
+      .steps-grid { grid-template-columns: 1fr; }
+    }
+
+    .step-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px 20px;
+      position: relative;
+    }
+
+    .step-num {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--heading);
+      color: var(--white);
+      font-size: 14px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+
+    .step-icon { font-size: 24px; margin-bottom: 10px; }
+
+    .step-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--heading);
+      margin-bottom: 8px;
+    }
+
+    .step-desc {
+      font-size: 13px;
+      color: var(--body);
+      line-height: 1.7;
     }
 
     /* ================================================================
-       RESPONSIVE
+       FOOTER
     ================================================================ */
-    @media (max-width: 480px) {
-      .logo-wrap { width: 72px; height: 72px; border-radius: 16px; }
-      .btn-cta { padding: 13px 26px; font-size: 14px; }
-      .hero-content { padding: 40px 20px 48px; }
+    footer {
+      background: var(--heading);
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+
+    .footer-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 40px 24px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .footer-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .footer-logo {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--white);
+      flex-shrink: 0;
+    }
+    .footer-logo img { width: 100%; height: 100%; object-fit: cover; }
+
+    .footer-brand-text .fb-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--white);
+    }
+    .footer-brand-text .fb-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,.35);
+      margin-top: 1px;
+    }
+
+    .footer-desc {
+      font-size: 12px;
+      color: rgba(255,255,255,.35);
+      line-height: 1.7;
+      max-width: 260px;
+      margin-top: 10px;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .footer-links h4 {
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255,255,255,.45);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 4px;
+    }
+
+    .footer-link {
+      font-size: 13px;
+      color: rgba(255,255,255,.5);
+      transition: color var(--dur);
+    }
+    .footer-link:hover { color: var(--white); }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,.06);
+      padding-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .footer-copy {
+      font-size: 12px;
+      color: rgba(255,255,255,.28);
+    }
+
+    .footer-badges {
+      display: flex;
+      gap: 8px;
+    }
+
+    .fbadge {
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(255,255,255,.35);
+      padding: 3px 9px;
+      border-radius: 99px;
+      border: 1px solid rgba(255,255,255,.12);
+    }
+
+    /* ================================================================
+       RESPONSIVE UTILITIES
+    ================================================================ */
+    @media (max-width: 700px) {
+      .section-wrap { padding: 56px 20px; }
+      .hero { padding: 88px 20px 68px; }
+      .footer-top { flex-direction: column; }
     }
   </style>
 </head>
 <body>
 
-<section class="hero" role="banner">
+<!-- ================================================================
+     NAVIGATION
+================================================================ -->
+<nav class="nav" aria-label="Main navigation">
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <div class="nav-logo">
+        <img src="logoptsi.jpg" alt="PTSI Logo" />
+      </div>
+      <div>
+        <div class="nav-name">BM Locator</div>
+        <div class="nav-sub">PTSI — Blok Rokan</div>
+      </div>
+    </div>
+    <div class="nav-links">
+      <a href="#about" class="nav-link">About</a>
+      <a href="#capabilities" class="nav-link">Features</a>
+      <a href="webgis.html" class="nav-link nav-cta" aria-label="Open WebGIS application">
+        Open WebGIS
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ================================================================
+     HERO
+================================================================ -->
+<section class="hero" id="home" aria-labelledby="hero-title">
   <div class="hero-overlay" aria-hidden="true"></div>
   <div class="hero-glow" aria-hidden="true"></div>
 
   <div class="hero-content">
 
-    <!-- Logo -->
-    <div class="logo-wrap">
+    <div class="hero-logo-wrap">
       <img src="logoptsi.jpg" alt="PTSI Logo" />
     </div>
 
-    <!-- Eyebrow -->
     <p class="hero-eyebrow">PT. Survey Indonesia — Blok Rokan</p>
 
-    <!-- Title -->
-    <h1 class="hero-title">
-      <span>Benchmark</span> Locator
+    <h1 class="hero-title" id="hero-title">
+      <span class="accent">Benchmark</span> Locator
     </h1>
 
-    <!-- Description -->
     <p class="hero-desc">
-      Professional platform for locating, viewing, and navigating benchmark control points
-      and well locations across the Blok Rokan survey area.
+      Professional geospatial platform for locating and visualizing geodetic control points
+      and emergency facilities across the Blok Rokan survey area.
     </p>
 
-    <!-- CTA -->
-    <a href="webgis.html" class="btn-cta" aria-label="Open Benchmark Locator WebGIS">
-      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <circle cx="10" cy="10" r="8"/>
-        <path d="M10 6v4l2.5 2.5"/>
-        <circle cx="10" cy="10" r="2" fill="currentColor" stroke="none"/>
-      </svg>
-      Open Benchmark Locator
-    </a>
+    <div class="hero-actions">
+      <a href="webgis.html" class="btn-primary" aria-label="Explore WebGIS application">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M10 2a8 8 0 100 16A8 8 0 0010 2z"/>
+          <path d="M10 6v4l2.5 2.5"/>
+          <circle cx="10" cy="10" r="1.5" fill="currentColor" stroke="none"/>
+        </svg>
+        Explore WebGIS
+      </a>
+      <a href="#about" class="btn-secondary">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="10" cy="10" r="8"/>
+          <path d="M10 9v5M10 7v1"/>
+        </svg>
+        Learn More
+      </a>
+    </div>
 
-    <!-- Feature chips -->
-    <div class="feature-chips" aria-label="Features">
-      <div class="chip">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="4.5"/><line x1="10.5" y1="10.5" x2="13" y2="13"/></svg>
-        Search &amp; Filter
+    <div class="hero-chips" aria-label="Platform highlights">
+      <div class="hero-chip">📍 <strong>BM Orde 1 / 2 / 3</strong></div>
+      <div class="hero-chip">🏥 Rumah Sakit</div>
+      <div class="hero-chip">🚔 Polisi</div>
+      <div class="hero-chip">🚒 Pemadam</div>
+      <div class="hero-chip">🛰 Satelit Basemap</div>
+    </div>
+
+  </div>
+
+  <div class="scroll-hint" aria-hidden="true">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <polyline points="4,7 10,13 16,7"/>
+    </svg>
+    Scroll
+  </div>
+</section>
+
+<!-- ================================================================
+     ABOUT SECTION
+================================================================ -->
+<section id="about" aria-labelledby="about-title">
+  <div class="section-wrap">
+    <p class="section-label">About</p>
+    <h2 class="section-title" id="about-title">Apa itu BM Locator?</h2>
+    <p class="section-desc">
+      Platform WebGIS berbasis browser untuk survei geodesi dan operasi lapangan di wilayah Blok Rokan, Riau.
+    </p>
+
+    <div class="about-grid">
+      <div class="about-text">
+        <p>
+          <strong>BM Locator</strong> adalah platform peta interaktif yang dikembangkan oleh
+          PT. Survey Indonesia (PTSI) untuk mendukung kegiatan survei dan pemetaan di wilayah
+          Blok Rokan. Platform ini menyediakan akses cepat ke data titik Benchmark (BM) geodesi
+          dan fasilitas darurat di lapangan.
+        </p>
+        <p>
+          Dirancang untuk digunakan langsung di browser — tanpa instalasi, tanpa backend kompleks.
+          Data disajikan melalui file GeoJSON yang dihosting di Vercel, sehingga mudah diperbarui
+          dan dipelihara melalui GitHub.
+        </p>
+        <div class="about-pills">
+          <span class="about-pill">Leaflet.js</span>
+          <span class="about-pill">GeoJSON</span>
+          <span class="about-pill">Satellite Imagery</span>
+          <span class="about-pill">GitHub + Vercel</span>
+          <span class="about-pill">Mobile Ready</span>
+        </div>
       </div>
-      <div class="chip">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2C5.2 2 3 4.2 3 7c0 3.8 5 9 5 9s5-5.2 5-9c0-2.8-2.2-5-5-5z"/><circle cx="8" cy="7" r="1.5"/></svg>
-        Orde 1 / 2 / 3
+
+      <div class="about-stats" aria-label="Data summary">
+        <div class="about-stat as1">
+          <div class="as-n">12</div>
+          <div class="as-l">BM Orde 1</div>
+        </div>
+        <div class="about-stat as2">
+          <div class="as-n">72</div>
+          <div class="as-l">BM Orde 2</div>
+        </div>
+        <div class="about-stat as3">
+          <div class="as-n">345+</div>
+          <div class="as-l">BM Orde 3</div>
+        </div>
+        <div class="about-stat as4">
+          <div class="as-n">92+</div>
+          <div class="as-l">Fasilitas Darurat</div>
+        </div>
       </div>
-      <div class="chip">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M2 6h12M2 10h12M6 2v12M10 2v12"/></svg>
-        Satellite Basemap
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     CAPABILITIES SECTION
+================================================================ -->
+<section id="capabilities" aria-labelledby="cap-title">
+  <div class="section-wrap">
+    <p class="section-label">Fitur Utama</p>
+    <h2 class="section-title" id="cap-title">Dua Kapabilitas Inti</h2>
+    <p class="section-desc">
+      BM Locator berfokus pada dua kategori data utama yang relevan untuk operasi survei dan keselamatan lapangan.
+    </p>
+
+    <div class="cap-grid">
+
+      <!-- Benchmark -->
+      <div class="cap-card bm">
+        <div class="cap-icon">📍</div>
+        <h3 class="cap-title">Pemetaan Benchmark (BM)</h3>
+        <p class="cap-desc">
+          Visualisasi dan navigasi ke titik-titik kontrol geodesi Orde 1, 2, dan 3
+          di seluruh wilayah Blok Rokan. Dilengkapi data koordinat UTM, tinggi elipsoid, dan lokasi administratif.
+        </p>
+        <div class="cap-features">
+          <div class="cap-feat">
+            <div class="cap-feat-dot"></div>
+            Visualisasi BM Orde 1, 2, dan 3 pada citra satelit
+          </div>
+          <div class="cap-feat">
+            <div class="cap-feat-dot"></div>
+            Pencarian berdasarkan nama BM, ID, desa, atau kecamatan
+          </div>
+          <div class="cap-feat">
+            <div class="cap-feat-dot"></div>
+            Informasi koordinat: Lintang/Bujur, UTM, Tinggi Elipsoid
+          </div>
+          <div class="cap-feat">
+            <div class="cap-feat-dot"></div>
+            Filter berdasarkan Orde dan Kecamatan
+          </div>
+          <div class="cap-feat">
+            <div class="cap-feat-dot"></div>
+            Pencarian BM terdekat dari lokasi pengguna
+          </div>
+          <div class="cap-feat">
+            <div class="cap-feat-dot"></div>
+            Navigasi langsung ke titik via Google Maps
+          </div>
+        </div>
       </div>
-      <div class="chip">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="5" r="2"/><circle cx="11" cy="5" r="2"/><circle cx="8" cy="11" r="2"/><line x1="5" y1="7" x2="8" y2="9"/><line x1="11" y1="7" x2="8" y2="9"/></svg>
-        Well Locations
+
+      <!-- Emergency Services -->
+      <div class="cap-card es">
+        <div class="cap-icon">🚨</div>
+        <h3 class="cap-title">Emergency Services</h3>
+        <p class="cap-desc">
+          Lokasi fasilitas darurat — rumah sakit, kantor polisi, dan pos pemadam kebakaran —
+          di seluruh wilayah Riau. Pendukung keselamatan tim di lapangan.
+        </p>
+        <div class="cap-features">
+          <div class="cap-feat">
+            <div class="cap-feat-dot"></div>
+            <span>🏥 Rumah sakit (80+ fasilitas)</span>
+          </div>
+          <div class="cap-feat">
+            <div class="cap-feat-dot"></div>
+            <span>🚔 Kantor polisi di wilayah survey</span>
+          </div>
+          <div class="cap-feat">
+            <div class="cap-feat-dot"></div>
+            <span>🚒 Pos pemadam kebakaran</span>
+          </div>
+          <div class="cap-feat">
+            <div class="cap-feat-dot"></div>
+            Pencarian fasilitas terdekat dari posisi pengguna
+          </div>
+          <div class="cap-feat">
+            <div class="cap-feat-dot"></div>
+            Informasi nama, alamat, dan jenis fasilitas
+          </div>
+          <div class="cap-feat">
+            <div class="cap-feat-dot"></div>
+            Navigasi langsung ke fasilitas via Google Maps
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end cap-grid -->
+  </div>
+</section>
+
+<!-- ================================================================
+     HOW IT WORKS
+================================================================ -->
+<section id="howitworks" aria-labelledby="hiw-title">
+  <div class="section-wrap">
+    <p class="section-label">Cara Penggunaan</p>
+    <h2 class="section-title" id="hiw-title">Mulai dalam 3 Langkah</h2>
+    <p class="section-desc">
+      Tidak perlu instalasi. Akses langsung dari browser desktop atau mobile.
+    </p>
+
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-icon">🛰</div>
+        <h3 class="step-title">Buka WebGIS</h3>
+        <p class="step-desc">
+          Klik tombol <strong>Explore WebGIS</strong> untuk membuka peta interaktif.
+          Peta akan menampilkan citra satelit wilayah Blok Rokan secara otomatis.
+        </p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-icon">🔍</div>
+        <h3 class="step-title">Cari atau Filter</h3>
+        <p class="step-desc">
+          Gunakan kotak pencarian untuk mencari BM berdasarkan nama atau ID.
+          Filter berdasarkan Orde atau Kecamatan untuk mempersempit hasil.
+        </p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-icon">🎯</div>
+        <h3 class="step-title">Navigasi ke Lokasi</h3>
+        <p class="step-desc">
+          Klik marker untuk melihat detail lengkap. Gunakan tombol <strong>Directions</strong>
+          untuk membuka Google Maps, atau <strong>Find Nearest</strong> untuk menemukan titik terdekat.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     WEBGIS PREVIEW SECTION
+================================================================ -->
+<section id="preview" aria-labelledby="preview-title">
+  <div class="section-wrap">
+    <p class="section-label">Preview</p>
+    <h2 class="section-title" id="preview-title">Lihat Aplikasinya</h2>
+    <p class="section-desc">
+      Antarmuka peta interaktif yang bersih, responsif, dan mudah digunakan di desktop maupun mobile.
+    </p>
+
+    <!-- Mock browser preview -->
+    <div class="preview-frame" aria-hidden="true">
+      <div class="pf-chrome">
+        <div class="pf-dot r"></div>
+        <div class="pf-dot y"></div>
+        <div class="pf-dot g"></div>
+        <div class="pf-url">bmlocator.vercel.app/webgis</div>
+      </div>
+      <div class="pf-map">
+        <div class="pf-grid"></div>
+
+        <!-- Fake sidebar -->
+        <div class="pf-panel">
+          <div class="pf-ph">
+            <div class="pf-ph-title">Benchmark Locator</div>
+            <div class="pf-ph-sub">PTSI — Blok Rokan</div>
+          </div>
+          <div class="pf-search"></div>
+          <div class="pf-sec">Benchmark</div>
+          <div class="pf-row"><div class="pf-row-dot" style="background:#3B82F6"></div><div class="pf-row-line"></div><div class="pf-row-cnt"></div></div>
+          <div class="pf-row"><div class="pf-row-dot" style="background:#22C55E"></div><div class="pf-row-line"></div><div class="pf-row-cnt"></div></div>
+          <div class="pf-row"><div class="pf-row-dot" style="background:#F97316"></div><div class="pf-row-line"></div><div class="pf-row-cnt"></div></div>
+          <div class="pf-sec">Emergency</div>
+          <div class="pf-row"><div class="pf-row-dot" style="background:#EF4444"></div><div class="pf-row-line"></div><div class="pf-row-cnt"></div></div>
+          <div class="pf-row"><div class="pf-row-dot" style="background:#1D4ED8"></div><div class="pf-row-line"></div><div class="pf-row-cnt"></div></div>
+          <div class="pf-row"><div class="pf-row-dot" style="background:#F59E0B"></div><div class="pf-row-line"></div><div class="pf-row-cnt"></div></div>
+        </div>
+
+        <!-- Scattered mock markers -->
+        <div class="pf-mk" style="background:#3B82F6;top:30%;left:45%"></div>
+        <div class="pf-mk" style="background:#22C55E;top:55%;left:60%"></div>
+        <div class="pf-mk" style="background:#22C55E;top:40%;left:72%"></div>
+        <div class="pf-mk" style="background:#F97316;top:62%;left:50%"></div>
+        <div class="pf-mk" style="background:#F97316;top:45%;left:80%"></div>
+        <div class="pf-mk" style="background:#EF4444;top:25%;left:68%;width:12px;height:12px"></div>
+        <div class="pf-mk" style="background:#F59E0B;top:70%;left:65%"></div>
+        <div class="pf-mk" style="background:#F97316;top:35%;left:55%"></div>
+        <div class="pf-mk" style="background:#22C55E;top:68%;left:42%"></div>
+        <div class="pf-mk" style="background:#3B82F6;top:52%;left:85%"></div>
       </div>
     </div>
 
-  </div><!-- end hero-content -->
+    <!-- CTA inside map preview -->
+    <div style="text-align:center;margin-top:32px;">
+      <a href="webgis.html" class="btn-primary" style="font-size:16px;padding:16px 36px;" aria-label="Open the Benchmark Locator WebGIS">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M10 2a8 8 0 100 16A8 8 0 0010 2z"/>
+          <path d="M13 10l-3 3-3-3M10 7v6"/>
+        </svg>
+        Buka Benchmark Locator
+      </a>
+    </div>
 
-  <!-- Footer -->
-  <footer class="hero-footer">
-    &copy; 2025 PT. Survey Indonesia. All rights reserved.
-  </footer>
+  </div>
 </section>
+
+<!-- ================================================================
+     FOOTER
+================================================================ -->
+<footer aria-label="Site footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+
+      <div>
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <img src="logoptsi.jpg" alt="PTSI Logo" />
+          </div>
+          <div class="footer-brand-text">
+            <div class="fb-name">BM Locator — PTSI</div>
+            <div class="fb-sub">Blok Rokan, Riau</div>
+          </div>
+        </div>
+        <p class="footer-desc">
+          Platform WebGIS untuk survei geodesi dan operasi lapangan di wilayah Blok Rokan.
+          Dikembangkan oleh PT. Survey Indonesia.
+        </p>
+      </div>
+
+      <div class="footer-links">
+        <h4>Navigasi</h4>
+        <a href="#home" class="footer-link">Beranda</a>
+        <a href="#about" class="footer-link">Tentang</a>
+        <a href="#capabilities" class="footer-link">Fitur</a>
+        <a href="webgis.html" class="footer-link">Buka WebGIS</a>
+      </div>
+
+      <div class="footer-links">
+        <h4>Data</h4>
+        <a href="#" class="footer-link">BM Orde 1 (12 titik)</a>
+        <a href="#" class="footer-link">BM Orde 2 (72 titik)</a>
+        <a href="#" class="footer-link">BM Orde 3 (345+ titik)</a>
+        <a href="#" class="footer-link">Emergency Services</a>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <p class="footer-copy">&copy; 2025 PT. Survey Indonesia. All rights reserved.</p>
+      <div class="footer-badges">
+        <span class="fbadge">Leaflet.js</span>
+        <span class="fbadge">GeoJSON</span>
+        <span class="fbadge">Vercel</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Smooth scroll polyfill for nav links -->
+<script>
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const id = a.getAttribute('href').slice(1);
+      const el = document.getElementById(id);
+      if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth' }); }
+    });
+  });
+</script>
 
 </body>
 </html>
