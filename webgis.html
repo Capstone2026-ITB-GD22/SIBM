@@ -30,7 +30,6 @@
   --muted:    #94A3B8;
   --body:     #475569;
   --heading:  #0F172A;
-
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
@@ -51,6 +50,13 @@ html,body { height:100%; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI'
 button { font-family:inherit; }
 
 /* ═══════════════════════════════════════════════════════
+   MAP CURSOR
+═══════════════════════════════════════════════════════ */
+.leaflet-container { cursor: grab !important; }
+.leaflet-drag-target { cursor: grabbing !important; }
+.leaflet-interactive { cursor: pointer !important; }
+
+/* ═══════════════════════════════════════════════════════
    LOADING SCREEN
 ═══════════════════════════════════════════════════════ */
 #loading {
@@ -62,7 +68,7 @@ button { font-family:inherit; }
 #loading h2 { color:var(--white); font-size:20px; font-weight:700; letter-spacing:.5px; }
 #loading p  { color:var(--muted); font-size:12px; }
 #loading-bar-wrap { width:200px; height:4px; background:rgba(255,255,255,.12); border-radius:99px; overflow:hidden; }
-#loading-bar { height:100%; background:var(--accent); border-radius:99px; width:0%; transition:width .3s; animation:lbar 2.2s ease infinite; }
+#loading-bar { height:100%; background:var(--accent); border-radius:99px; width:0%; animation:lbar 2.2s ease infinite; }
 @keyframes lbar { 0%{width:0%} 60%{width:80%} 100%{width:95%} }
 
 /* ═══════════════════════════════════════════════════════
@@ -81,9 +87,7 @@ button { font-family:inherit; }
 /* ═══════════════════════════════════════════════════════
    APP SHELL
 ═══════════════════════════════════════════════════════ */
-#app {
-  display:flex; height:100vh; overflow:hidden; position:relative;
-}
+#app { display:flex; height:100vh; overflow:hidden; position:relative; }
 
 /* ═══════════════════════════════════════════════════════
    PANEL
@@ -103,11 +107,7 @@ button { font-family:inherit; }
 }
 
 /* Panel header */
-#panel-header {
-  background:var(--heading);
-  padding:16px 14px 12px;
-  flex-shrink:0;
-}
+#panel-header { background:var(--heading); padding:16px 14px 12px; flex-shrink:0; }
 .ph-top { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
 .ph-logo { width:38px; height:38px; border-radius:8px; object-fit:cover; flex-shrink:0; }
 .ph-titles { flex:1; min-width:0; }
@@ -117,30 +117,18 @@ button { font-family:inherit; }
 .ph-back:hover { color:var(--white); }
 
 /* Panel body */
-#panel-body {
-  flex:1; overflow-y:auto; padding:12px 10px; display:flex; flex-direction:column; gap:10px;
-}
+#panel-body { flex:1; overflow-y:auto; padding:12px 10px; display:flex; flex-direction:column; gap:10px; }
 #panel-body::-webkit-scrollbar { width:4px; }
 #panel-body::-webkit-scrollbar-track { background:transparent; }
 #panel-body::-webkit-scrollbar-thumb { background:var(--border2); border-radius:99px; }
 
-/* ── Section ── */
-.section {
-  display:flex; flex-direction:column; gap:6px;
-}
-.sec-label {
-  font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1px;
-  color:var(--muted); padding:0 2px 2px;
-}
+/* Section */
+.section { display:flex; flex-direction:column; gap:6px; }
+.sec-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted); padding:0 2px 2px; }
 
-/* ── Search ── */
-.search-wrap {
-  position:relative;
-}
-.search-wrap svg {
-  position:absolute; left:9px; top:50%; transform:translateY(-50%);
-  pointer-events:none; color:var(--muted);
-}
+/* Search */
+.search-wrap { position:relative; }
+.search-wrap svg { position:absolute; left:9px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--muted); }
 #search-input {
   width:100%; padding:8px 10px 8px 30px;
   border:1.5px solid var(--border); border-radius:var(--radius-md);
@@ -148,10 +136,7 @@ button { font-family:inherit; }
   outline:none; transition:border-color .15s;
 }
 #search-input:focus { border-color:var(--accent); background:var(--white); }
-#search-results {
-  display:none; flex-direction:column; gap:4px; margin-top:4px;
-  max-height:220px; overflow-y:auto;
-}
+#search-results { display:none; flex-direction:column; gap:4px; margin-top:4px; max-height:220px; overflow-y:auto; }
 #search-results.visible { display:flex; }
 .sr-item {
   padding:7px 10px; background:var(--surface); border:1px solid var(--border);
@@ -170,7 +155,7 @@ button { font-family:inherit; }
 .badge-pl { background:#DBEAFE; color:#1D4ED8; }
 .badge-pd { background:#FEF3C7; color:#B45309; }
 
-/* ── Filters ── */
+/* Filters */
 select, .filter-select {
   width:100%; padding:7px 10px; border:1.5px solid var(--border);
   border-radius:var(--radius-md); font-size:12px; color:var(--heading);
@@ -188,12 +173,11 @@ select:focus { border-color:var(--accent); }
 }
 #btn-reset-filter:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-light); }
 
-/* ── Layer Groups ── */
+/* Layer Groups */
 .layer-group-header {
   display:flex; align-items:center; justify-content:space-between;
   padding:6px 8px; background:var(--surface2); border-radius:var(--radius-sm);
-  font-size:12px; font-weight:700; color:var(--heading); cursor:pointer;
-  margin-bottom:2px;
+  font-size:12px; font-weight:700; color:var(--heading); cursor:pointer; margin-bottom:2px;
 }
 .grp-toggle {
   background:none; border:none; cursor:pointer; color:var(--muted);
@@ -206,8 +190,7 @@ select:focus { border-color:var(--accent); }
 /* Layer row */
 .layer-row {
   display:flex; align-items:center; gap:8px; padding:5px 4px;
-  border-radius:var(--radius-sm); cursor:pointer;
-  transition:background .12s;
+  border-radius:var(--radius-sm); cursor:pointer; transition:background .12s;
 }
 .layer-row:hover { background:var(--surface2); }
 .layer-row input[type=checkbox] { accent-color:var(--accent); cursor:pointer; flex-shrink:0; }
@@ -219,14 +202,10 @@ select:focus { border-color:var(--accent); }
 .sw-pl { background:var(--cpl); }
 .sw-pd { background:var(--cpd); }
 .lyr-label { font-size:12px; color:var(--body); flex:1; }
-.lyr-emoji { font-size:13px; line-height:1; }
-.lyr-cnt {
-  font-size:10px; font-weight:700; padding:2px 6px;
-  border-radius:99px; background:var(--surface2); color:var(--muted);
-  min-width:24px; text-align:center;
-}
+.lyr-emoji { font-size:13px; line-height:1; display:flex; align-items:center; }
+.lyr-cnt { font-size:10px; font-weight:700; padding:2px 6px; border-radius:99px; background:var(--surface2); color:var(--muted); min-width:24px; text-align:center; }
 
-/* ── Basemap ── */
+/* Basemap */
 .bm-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:5px; }
 .bm-btn {
   padding:7px 4px; border:1.5px solid var(--border); border-radius:var(--radius-sm);
@@ -236,18 +215,14 @@ select:focus { border-color:var(--accent); }
 .bm-btn:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-light); }
 .bm-btn.active { border-color:var(--accent); background:var(--accent); color:var(--white); }
 
-/* ── Stats ── */
-.stats-strip {
-  display:grid; grid-template-columns:repeat(3,1fr); gap:5px;
-}
+/* Stats */
+.stats-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:5px; }
 .stat-card {
   background:var(--surface); border:1px solid var(--border);
   border-radius:var(--radius-sm); padding:8px 4px;
   text-align:center; position:relative; overflow:hidden;
 }
-.stat-card::before {
-  content:''; position:absolute; top:0; left:0; right:0; height:3px;
-}
+.stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
 .stat-card.s1::before  { background:var(--c1); }
 .stat-card.s2::before  { background:var(--c2); }
 .stat-card.s3::before  { background:var(--c3); }
@@ -257,7 +232,7 @@ select:focus { border-color:var(--accent); }
 .stat-n { font-size:16px; font-weight:800; color:var(--heading); line-height:1; margin-top:2px; }
 .stat-l { font-size:9px; color:var(--muted); margin-top:3px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
 
-/* ── Legend ── */
+/* Legend */
 .leg-list { display:flex; flex-direction:column; gap:5px; }
 .leg-item { display:flex; align-items:center; gap:8px; }
 .leg-dot  { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
@@ -265,7 +240,7 @@ select:focus { border-color:var(--accent); }
 .leg-desc  { font-size:10px; color:var(--muted); margin-left:auto; }
 
 /* ═══════════════════════════════════════════════════════
-   PANEL TOGGLE (desktop chevron)
+   PANEL TOGGLE (desktop)
 ═══════════════════════════════════════════════════════ */
 #toggle-btn {
   position:absolute; left:var(--panel-w); top:50%; transform:translateY(-50%);
@@ -298,13 +273,25 @@ select:focus { border-color:var(--accent); }
   box-shadow:var(--sh-md); cursor:pointer;
   display:flex; align-items:center; justify-content:center;
   font-size:16px; color:var(--body); transition:all .15s;
+  position:relative;
 }
 .fab:hover { border-color:var(--accent); background:var(--accent-light); color:var(--accent); transform:scale(1.05); }
 .fab.fab-primary { background:var(--accent); color:var(--white); border-color:var(--accent); }
-.fab.fab-primary:hover { background:var(--accent-dark); border-color:var(--accent-dark); color:var(--white); }
+.fab.fab-primary:hover { background:var(--accent-dark); border-color:var(--accent-dark); color:var(--white); transform:scale(1.05); }
+.fab.fab-active { background:var(--accent); color:var(--white) !important; border-color:var(--accent); }
 .fab-zoom-grp { display:flex; flex-direction:column; gap:0; }
 .fab-zoom-grp .fab:first-child { border-radius:12px 12px 0 0; border-bottom:none; }
 .fab-zoom-grp .fab:last-child  { border-radius:0 0 12px 12px; }
+
+/* FAB tooltip */
+@media (min-width:641px) {
+  .fab[data-tip]:hover::after {
+    content: attr(data-tip);
+    position:absolute; right:calc(100% + 8px); top:50%; transform:translateY(-50%);
+    background:var(--heading); color:#fff; font-size:11px; white-space:nowrap;
+    padding:4px 8px; border-radius:6px; pointer-events:none; z-index:10;
+  }
+}
 
 /* ═══════════════════════════════════════════════════════
    NEAREST PANEL
@@ -313,7 +300,7 @@ select:focus { border-color:var(--accent); }
   display:none;
   position:absolute;
   bottom:80px; left:14px;
-  width:280px;
+  width:300px;
   background:var(--white);
   border-radius:var(--radius-lg);
   box-shadow:var(--sh-xl);
@@ -325,41 +312,73 @@ select:focus { border-color:var(--accent); }
   padding:10px 14px; background:var(--heading); color:var(--white);
 }
 .np-title { font-size:13px; font-weight:700; }
-.np-close { background:none; border:none; color:rgba(255,255,255,.6); font-size:14px; cursor:pointer; padding:0; }
+.np-close { background:none; border:none; color:rgba(255,255,255,.6); font-size:16px; cursor:pointer; padding:0 2px; line-height:1; }
 .np-close:hover { color:var(--white); }
+
+/* Mode bar */
+.np-mode-bar { display:flex; border-bottom:1px solid var(--border); background:var(--surface); }
+.np-mode-btn {
+  flex:1; padding:8px 6px; font-size:11px; font-weight:700;
+  border:none; background:none; cursor:pointer; color:var(--muted);
+  border-bottom:2.5px solid transparent; transition:all .15s;
+}
+.np-mode-btn.active { color:var(--accent); border-bottom-color:var(--accent); background:var(--white); }
+
+/* Category tabs */
 .np-tabs { display:flex; border-bottom:1px solid var(--border); }
 .np-tab {
-  flex:1; padding:7px 4px; font-size:10px; font-weight:700;
+  flex:1; padding:6px 2px; font-size:10px; font-weight:700;
   border:none; background:none; cursor:pointer; color:var(--muted);
   border-bottom:2px solid transparent; transition:all .15s;
 }
 .np-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
-.np-results-wrap { max-height:200px; overflow-y:auto; }
-.np-item { display:flex; align-items:center; gap:8px; padding:8px 12px; border-bottom:1px solid var(--surface2); }
+
+/* Results */
+.np-results-wrap { max-height:230px; overflow-y:auto; }
+.np-item {
+  display:flex; align-items:center; gap:8px; padding:8px 12px;
+  border-bottom:1px solid var(--surface2);
+}
 .np-item:last-child { border-bottom:none; }
 .np-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
 .np-info { flex:1; min-width:0; }
 .np-name { font-size:11px; font-weight:600; color:var(--heading); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .np-sub  { font-size:10px; color:var(--muted); }
+.np-dist { font-size:10px; font-weight:700; color:var(--accent); white-space:nowrap; }
 .np-actions { display:flex; gap:4px; }
 .np-btn {
-  width:26px; height:26px; border:1px solid var(--border); border-radius:6px;
+  width:28px; height:28px; border:1px solid var(--border); border-radius:6px;
   background:var(--surface); cursor:pointer; font-size:12px;
-  display:flex; align-items:center; justify-content:center;
+  display:flex; align-items:center; justify-content:center; transition:all .12s;
 }
 .np-btn:hover { border-color:var(--accent); background:var(--accent-light); }
-.np-empty { padding:16px; text-align:center; font-size:12px; color:var(--muted); }
+.np-empty { padding:16px; text-align:center; font-size:12px; color:var(--muted); line-height:1.5; }
+.np-gps-btn {
+  display:block; margin:10px 12px; padding:9px 12px; background:var(--accent); color:#fff;
+  border:none; border-radius:var(--radius-sm); font-size:12px; font-weight:700;
+  cursor:pointer; width:calc(100% - 24px); transition:background .15s; text-align:center;
+}
+.np-gps-btn:hover { background:var(--accent-dark); }
+
+/* ═══════════════════════════════════════════════════════
+   MAP LABELS
+═══════════════════════════════════════════════════════ */
+.map-label {
+  background:rgba(255,255,255,.9);
+  border:1px solid rgba(0,0,0,.15);
+  border-radius:4px; padding:2px 5px;
+  font-size:10px; font-weight:600; color:#0F172A;
+  white-space:nowrap; box-shadow:0 1px 4px rgba(0,0,0,.15);
+  pointer-events:none; line-height:1.4;
+}
 
 /* ═══════════════════════════════════════════════════════
    POPUP STYLES
 ═══════════════════════════════════════════════════════ */
-.leaflet-popup-content-wrapper { padding:0; border-radius:var(--radius-lg); overflow:hidden; }
-.leaflet-popup-content { margin:0; width:260px !important; }
+.leaflet-popup-content-wrapper { padding:0; border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--sh-xl); }
+.leaflet-popup-content { margin:0; width:270px !important; }
 .leaflet-popup-tip-container { margin-top:-1px; }
-.pu-head {
-  padding:12px 14px 10px;
-  display:flex; flex-direction:column; gap:4px;
-}
+.pu-head { padding:12px 14px 10px; display:flex; flex-direction:column; gap:4px; }
 .pu-pill {
   display:inline-flex; align-items:center; gap:4px;
   font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.8px;
@@ -384,7 +403,7 @@ select:focus { border-color:var(--accent); }
 .pu-btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
 .pu-btn.primary:hover { background:var(--accent-dark); border-color:var(--accent-dark); }
 
-/* ES highlight */
+/* Highlight effects */
 .es-hl { filter: drop-shadow(0 0 6px rgba(37,99,235,.8)) drop-shadow(0 0 12px rgba(37,99,235,.5)); }
 
 /* ═══════════════════════════════════════════════════════
@@ -397,16 +416,12 @@ select:focus { border-color:var(--accent); }
   padding:10px 16px 14px;
   box-shadow:0 -4px 16px rgba(0,0,0,.1);
 }
-.mob-pill {
-  width:36px; height:4px; background:var(--border2); border-radius:99px;
-  margin:0 auto 10px;
-}
+.mob-pill { width:36px; height:4px; background:var(--border2); border-radius:99px; margin:0 auto 10px; }
 .mob-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
 .mob-title { font-size:14px; font-weight:700; color:var(--heading); }
 #mob-toggle-btn {
   padding:7px 16px; background:var(--accent); color:var(--white);
-  border:none; border-radius:var(--radius-sm); font-size:12px; font-weight:700;
-  cursor:pointer;
+  border:none; border-radius:var(--radius-sm); font-size:12px; font-weight:700; cursor:pointer;
 }
 
 @media (max-width:640px) {
@@ -426,7 +441,7 @@ select:focus { border-color:var(--accent); }
 </head>
 <body>
 
-<!-- ── LOADING ── -->
+<!-- LOADING -->
 <div id="loading">
   <img src="logoptsi.jpg" alt="PTSI"/>
   <h2>Benchmark Locator</h2>
@@ -434,15 +449,14 @@ select:focus { border-color:var(--accent); }
   <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
 </div>
 
-<!-- ── TOAST ── -->
+<!-- TOAST -->
 <div id="toast"></div>
 
-<!-- ── APP ── -->
+<!-- APP -->
 <div id="app">
 
-  <!-- ══ PANEL ══ -->
+  <!-- PANEL -->
   <div id="panel">
-    <!-- Header -->
     <div id="panel-header">
       <div class="ph-top">
         <img src="logoptsi.jpg" alt="PTSI" class="ph-logo"/>
@@ -457,7 +471,6 @@ select:focus { border-color:var(--accent); }
       </a>
     </div>
 
-    <!-- Body -->
     <div id="panel-body">
 
       <!-- SEARCH -->
@@ -473,9 +486,7 @@ select:focus { border-color:var(--accent); }
       <!-- FILTER -->
       <div class="section">
         <div class="sec-label">Filter</div>
-        <select id="fil-kec">
-          <option value="">Semua Kecamatan</option>
-        </select>
+        <select id="fil-kec"><option value="">Semua Kecamatan</option></select>
         <select id="fil-orde">
           <option value="">Semua Orde</option>
           <option value="1">ORDE 1</option>
@@ -489,7 +500,7 @@ select:focus { border-color:var(--accent); }
       <div class="section">
         <div class="sec-label">Layer</div>
 
-        <!-- Benchmark group -->
+        <!-- Benchmark -->
         <div class="layer-group-header" id="grp-bm-hdr">
           <span>📍 Benchmark</span>
           <button class="grp-toggle" data-grp="bm">▼</button>
@@ -515,28 +526,28 @@ select:focus { border-color:var(--accent); }
           </label>
         </div>
 
-        <!-- Emergency Services group -->
+        <!-- Emergency Services — OFF by default -->
         <div class="layer-group-header" id="grp-es-hdr" style="margin-top:4px">
           <span>🚨 Emergency Services</span>
           <button class="grp-toggle" data-grp="es">▼</button>
         </div>
         <div class="layer-group-body" id="grp-es-body">
           <label class="layer-row">
-            <input type="checkbox" id="chk-rs" checked/>
+            <input type="checkbox" id="chk-rs"/>
             <div class="sw sw-rs"></div>
             <span class="lyr-label">Rumah Sakit</span>
             <span class="lyr-emoji"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block"><circle cx="12" cy="12" r="11" fill="#EF4444"/><path d="M12 6v12M6 12h12" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg></span>
             <span class="lyr-cnt" id="cnt-rs">—</span>
           </label>
           <label class="layer-row">
-            <input type="checkbox" id="chk-pl" checked/>
+            <input type="checkbox" id="chk-pl"/>
             <div class="sw sw-pl"></div>
             <span class="lyr-label">Polisi</span>
             <span class="lyr-emoji"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block"><circle cx="12" cy="12" r="11" fill="#1D4ED8"/><polygon points="12,4 13.8,9 19,9.5 15,13 16.3,18.5 12,16 7.7,18.5 9,13 5,9.5 10.2,9" fill="#fff" opacity=".9"/></svg></span>
             <span class="lyr-cnt" id="cnt-pl">—</span>
           </label>
           <label class="layer-row">
-            <input type="checkbox" id="chk-pd" checked/>
+            <input type="checkbox" id="chk-pd"/>
             <div class="sw sw-pd"></div>
             <span class="lyr-label">Pemadam</span>
             <span class="lyr-emoji"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block"><circle cx="12" cy="12" r="11" fill="#F59E0B"/><path d="M12 4c0 5-5 7-5 12a5 5 0 0010 0c0-5-5-7-5-12z" fill="#fff" opacity=".85"/></svg></span>
@@ -575,36 +586,42 @@ select:focus { border-color:var(--accent); }
           <div class="leg-item"><div class="leg-dot" style="background:var(--c1)"></div><span class="leg-label">ORDE 1</span><span class="leg-desc">BM Orde 1</span></div>
           <div class="leg-item"><div class="leg-dot" style="background:var(--c2)"></div><span class="leg-label">ORDE 2</span><span class="leg-desc">BM Orde 2</span></div>
           <div class="leg-item"><div class="leg-dot" style="background:var(--c3)"></div><span class="leg-label">ORDE 3</span><span class="leg-desc">BM Orde 3</span></div>
-          <div class="leg-item"><div style="width:18px;height:18px;border-radius:50%;background:#EF4444;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg></div><span class="leg-label">Rumah Sakit</span></div>
-          <div class="leg-item"><div style="width:18px;height:18px;border-radius:50%;background:#1D4ED8;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="12,3 14.5,8.5 21,9.5 16.5,14 17.5,21 12,18 6.5,21 7.5,14 3,9.5 9.5,8.5" fill="#fff" opacity=".9"/></svg></div><span class="leg-label">Polisi</span></div>
-          <div class="leg-item"><div style="width:18px;height:18px;border-radius:50%;background:#F59E0B;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2c0 6-6 8-6 14a6 6 0 0012 0c0-6-6-8-6-14z" fill="#fff" opacity=".85"/></svg></div><span class="leg-label">Pemadam Kebakaran</span></div>
+          <div class="leg-item"><div style="width:18px;height:18px;border-radius:50%;background:#EF4444;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg></div><span class="leg-label">Rumah Sakit</span></div>
+          <div class="leg-item"><div style="width:18px;height:18px;border-radius:50%;background:#1D4ED8;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><polygon points="12,3 14.5,8.5 21,9.5 16.5,14 17.5,21 12,18 6.5,21 7.5,14 3,9.5 9.5,8.5" fill="#fff" opacity=".9"/></svg></div><span class="leg-label">Polisi</span></div>
+          <div class="leg-item"><div style="width:18px;height:18px;border-radius:50%;background:#F59E0B;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M12 2c0 6-6 8-6 14a6 6 0 0012 0c0-6-6-8-6-14z" fill="#F59E0B" opacity=".85"/></svg></div><span class="leg-label">Pemadam Kebakaran</span></div>
         </div>
       </div>
 
     </div><!-- /panel-body -->
   </div><!-- /panel -->
 
-  <!-- ── Desktop toggle button ── -->
-  <button id="toggle-btn" title="Toggle panel">‹</button>
+  <!-- Desktop toggle -->
+  <button id="toggle-btn">‹</button>
 
-  <!-- ══ MAP WRAP ══ -->
+  <!-- MAP WRAP -->
   <div id="map-wrap">
     <div id="map"></div>
 
     <!-- FAB column -->
     <div class="fab-col">
-      <button class="fab" id="fab-locate" title="Lokasi Saya">
+      <button class="fab" id="fab-locate" data-tip="Lokasi Saya">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7"/></svg>
       </button>
-      <button class="fab fab-primary" id="fab-nearest" title="Temukan Terdekat">
+      <button class="fab fab-primary" id="fab-nearest" data-tip="Near Me / Terdekat">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
       </button>
-      <div class="fab-zoom-grp">
-        <button class="fab" id="fab-in" title="Zoom In">+</button>
-        <button class="fab" id="fab-out" title="Zoom Out">−</button>
-      </div>
-      <button class="fab" id="fab-fit" title="Fit Semua Data">
+      <button class="fab" id="fab-labels" data-tip="Tampilkan Label">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      </button>
+      <button class="fab" id="fab-fs" data-tip="Layar Penuh">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 00-2 2v3M21 8V5a2 2 0 00-2-2h-3M16 21h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+      </button>
+      <div class="fab-zoom-grp">
+        <button class="fab" id="fab-in" data-tip="Zoom In" style="font-size:18px;font-weight:700;">+</button>
+        <button class="fab" id="fab-out" data-tip="Zoom Out" style="font-size:18px;font-weight:700;">−</button>
+      </div>
+      <button class="fab" id="fab-fit" data-tip="Tampilkan Semua Data">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 00-2 2v3M21 8V5a2 2 0 00-2-2h-3M16 21h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/><path d="M12 8v8M8 12h8"/></svg>
       </button>
     </div>
 
@@ -614,22 +631,39 @@ select:focus { border-color:var(--accent); }
         <span class="np-title">🎯 Temukan Terdekat</span>
         <button class="np-close" id="np-close-btn">✕</button>
       </div>
-      <div class="np-tabs">
-        <button class="np-tab active" data-cat="bm">BM</button>
-        <button class="np-tab" data-cat="rs">RS</button>
-        <button class="np-tab" data-cat="pl">Polisi</button>
-        <button class="np-tab" data-cat="pd">Pemadam</button>
+      <!-- Mode bar -->
+      <div class="np-mode-bar">
+        <button class="np-mode-btn active" data-mode="nearme">📍 Near Me</button>
+        <button class="np-mode-btn" data-mode="nearestbm">🎯 Nearest BM</button>
       </div>
-      <div class="np-results-wrap">
-        <div id="np-results"><div class="np-empty">Klik 🎯 untuk mencari lokasi terdekat</div></div>
+      <!-- Near Me pane -->
+      <div id="np-nearme-pane">
+        <div class="np-tabs">
+          <button class="np-tab active" data-cat="bm">BM</button>
+          <button class="np-tab" data-cat="rs">RS</button>
+          <button class="np-tab" data-cat="pl">Polisi</button>
+          <button class="np-tab" data-cat="pd">Pemadam</button>
+        </div>
+        <div class="np-results-wrap">
+          <div id="np-results">
+            <button class="np-gps-btn" onclick="doNearMe()">📍 Gunakan Lokasi GPS Saya</button>
+          </div>
+        </div>
+      </div>
+      <!-- Nearest BM pane -->
+      <div id="np-nearestbm-pane" style="display:none">
+        <div class="np-results-wrap">
+          <div id="np-bm-results">
+            <div class="np-empty">Klik tombol <strong>🎯 Nearest BM dari Sini</strong> pada popup sebuah titik BM untuk mencari BM terdekat.</div>
+          </div>
+        </div>
       </div>
     </div>
 
   </div><!-- /map-wrap -->
-
 </div><!-- /app -->
 
-<!-- ── MOBILE BOTTOM PILL ── -->
+<!-- MOBILE BOTTOM PILL -->
 <div id="mob-handle">
   <div class="mob-pill"></div>
   <div class="mob-row">
@@ -655,18 +689,23 @@ const SOURCES = [
    STATE
 ═══════════════════════════════════════════════════════ */
 const S = {
-  features:  [],
-  markers:   new Map(),
-  groups:    {},
-  visible:   { 1:true, 2:true, 3:true, rs:true, pl:true, pd:true },
-  totals:    { 1:0,    2:0,    3:0,    rs:0,    pl:0,    pd:0 },
-  filterKec:  '',
-  filterOrde: '',
-  dataBounds: null,
-  userMk:    null, userCircle:null,
+  features:    [],
+  markers:     new Map(),
+  groups:      {},
+  labelGroups: {},
+  labels:      new Map(),
+  // BM ON by default, ES OFF by default
+  visible:     { 1:true, 2:true, 3:true, rs:false, pl:false, pd:false },
+  totals:      { 1:0, 2:0, 3:0, rs:0, pl:0, pd:0 },
+  filterKec:   '',
+  filterOrde:  '',
+  dataBounds:  null,
+  userMk:      null,
+  userCircle:  null,
   highlighted: null,
-  basemap:   'sat',
-  located:   false,
+  basemap:     'sat',
+  located:     false,
+  labelsOn:    false,
 };
 
 let _fid = 0;
@@ -685,6 +724,9 @@ function clean(v) {
 function fmtNum(v, dec=4) {
   const n = parseFloat(v);
   return isNaN(n) ? '' : n.toFixed(dec);
+}
+function fmtDist(m) {
+  return m >= 1000 ? (m/1000).toFixed(1)+' km' : Math.round(m)+' m';
 }
 
 let _toastTimer;
@@ -707,23 +749,21 @@ function hideLoading() {
   el.style.opacity = '0';
   setTimeout(() => el.remove(), 420);
 }
-function showError(msg) {
-  showToast('❌ ' + msg, 5000);
-}
+function showError(msg) { showToast('❌ ' + msg, 5000); }
 
 function fallbackCopy(text) {
   const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.position = 'fixed'; ta.style.opacity = '0';
-  document.body.appendChild(ta);
-  ta.focus(); ta.select();
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
   try { document.execCommand('copy'); } catch(e) {}
   document.body.removeChild(ta);
 }
 function gCopy(lat, lng) {
   const txt = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(txt).then(() => showToast('📋 Koordinat disalin!')).catch(() => { fallbackCopy(txt); showToast('📋 Koordinat disalin!'); });
+    navigator.clipboard.writeText(txt)
+      .then(() => showToast('📋 Koordinat disalin!'))
+      .catch(() => { fallbackCopy(txt); showToast('📋 Koordinat disalin!'); });
   } else { fallbackCopy(txt); showToast('📋 Koordinat disalin!'); }
 }
 function gNav(lat, lng) {
@@ -731,8 +771,10 @@ function gNav(lat, lng) {
 }
 
 function haversine(lat1, lng1, lat2, lng2) {
-  const R = 6371000, dLat = (lat2-lat1)*Math.PI/180, dLng = (lng2-lng1)*Math.PI/180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
@@ -742,15 +784,9 @@ function haversine(lat1, lng1, lat2, lng2) {
 const map = L.map('map', { zoomControl:false, attributionControl:true });
 
 const tiles = {
-  sat: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    attribution:'Tiles &copy; Esri', maxZoom:19
-  }),
-  terrain: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-    attribution:'Map data &copy; OpenTopoMap', maxZoom:17
-  }),
-  street: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution:'&copy; OpenStreetMap contributors', maxZoom:19
-  }),
+  sat:     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution:'Tiles &copy; Esri', maxZoom:19 }),
+  terrain: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { attribution:'Map data &copy; OpenTopoMap', maxZoom:17 }),
+  street:  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'&copy; OpenStreetMap contributors', maxZoom:19 }),
 };
 
 tiles.sat.addTo(map);
@@ -766,70 +802,128 @@ function setBasemap(key) {
   tiles[key].addTo(map);
   tiles[key].bringToBack();
   document.querySelectorAll('.bm-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('bm-'+key).classList.add('active');
+  document.getElementById('bm-' + key).classList.add('active');
 }
 
 /* ═══════════════════════════════════════════════════════
    LAYER GROUPS
 ═══════════════════════════════════════════════════════ */
 ['1','2','3','rs','pl','pd'].forEach(k => {
-  S.groups[k] = L.layerGroup().addTo(map);
+  S.groups[k]      = L.layerGroup();
+  S.labelGroups[k] = L.layerGroup();
+  // Add BM groups to map immediately; ES groups added on toggle
+  if (['1','2','3'].includes(k)) S.groups[k].addTo(map);
 });
 
 /* ═══════════════════════════════════════════════════════
-   MARKER CREATION
+   ES ICON
 ═══════════════════════════════════════════════════════ */
 function makeEsIcon(type) {
   const cfg = {
-    rs: {
-      bg: '#EF4444',
-      svg: '<path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="3" stroke-linecap="round"/>'
-    },
-    pl: {
-      bg: '#1D4ED8',
-      svg: '<polygon points="12,3 14.5,8.5 21,9.5 16.5,14 17.5,21 12,18 6.5,21 7.5,14 3,9.5 9.5,8.5" fill="#fff" opacity=".9"/>'
-    },
-    pd: {
-      bg: '#F59E0B',
-      svg: '<path d="M12 2c0 6-6 8-6 14a6 6 0 0012 0c0-6-6-8-6-14z" fill="#fff" opacity=".85"/>'
-    },
+    rs: { bg:'#EF4444', svg:'<path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="3" stroke-linecap="round"/>' },
+    pl: { bg:'#1D4ED8', svg:'<polygon points="12,3 14.5,8.5 21,9.5 16.5,14 17.5,21 12,18 6.5,21 7.5,14 3,9.5 9.5,8.5" fill="#fff" opacity=".9"/>' },
+    pd: { bg:'#F59E0B', svg:'<path d="M12 2c0 6-6 8-6 14a6 6 0 0012 0c0-6-6-8-6-14z" fill="#fff" opacity=".85"/>' },
   };
   const c = cfg[type] || cfg.rs;
   return L.divIcon({
     className: '',
-    html: `<div style="width:30px;height:30px;border-radius:50%;background:${c.bg};border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="none" xmlns="http://www.w3.org/2000/svg">${c.svg}</svg></div>`,
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-    popupAnchor: [0, -17],
+    html: `<div style="width:32px;height:32px;border-radius:50%;background:${c.bg};border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s,box-shadow .12s;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="none" xmlns="http://www.w3.org/2000/svg">${c.svg}</svg></div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -18],
   });
 }
 
-const ES_TYPE = { rs:'rs', pl:'pl', pd:'pd' };
-
+/* ═══════════════════════════════════════════════════════
+   CREATE MARKER
+═══════════════════════════════════════════════════════ */
 function createMarker(feat) {
-  const cat = feat._category;
-  const orde = feat._orde;
+  const cat   = feat._category;
+  const orde  = feat._orde;
   const color = feat._color;
   const [lng, lat] = feat._coords;
 
   let mk;
   if (cat === 'bm') {
     mk = L.circleMarker([lat, lng], {
-      radius: 6,
+      radius: 8,
       color: '#FFFFFF',
-      weight: 2.5,
+      weight: 2,
       fillColor: color,
-      fillOpacity: 0.92,
+      fillOpacity: 0.9,
+      interactive: true,
+    });
+    mk.on('mouseover', function() {
+      if (S.highlighted !== feat._fid) this.setStyle({ radius:10, weight:2.5, fillOpacity:1 });
+    });
+    mk.on('mouseout', function() {
+      if (S.highlighted !== feat._fid) this.setStyle({ radius:8, weight:2, fillOpacity:0.9 });
     });
   } else {
-    mk = L.marker([lat, lng], { icon: makeEsIcon(ES_TYPE[String(orde)] || 'rs') });
+    mk = L.marker([lat, lng], { icon: makeEsIcon(String(orde)) });
   }
 
-  mk.bindPopup(buildPopup(feat), { maxWidth:280, className:'pu-popup' });
+  mk.bindPopup(buildPopup(feat), {
+    maxWidth: 300,
+    className: 'pu-popup',
+    autoPanPaddingTopLeft: [10, 10],
+    autoPanPaddingBottomRight: [10, 80],
+  });
   mk.on('click', () => highlightFeature(feat._fid));
-  S.groups[String(orde)].addLayer(mk);
+
   S.markers.set(feat._fid, mk);
+
+  // Only add to group if layer is visible
+  if (S.visible[orde] !== false) {
+    S.groups[String(orde)].addLayer(mk);
+  }
+
+  // Create label (not added to map yet)
+  createLabel(feat);
 }
+
+/* ═══════════════════════════════════════════════════════
+   LABELS
+═══════════════════════════════════════════════════════ */
+function getLabelText(feat) {
+  const p = feat.properties || {};
+  if (feat._category === 'bm') return clean(p.Nama_BM) || clean(p.ID_Banchma) || '';
+  return clean(p.name) || clean(p.rs) || '';
+}
+
+function createLabel(feat) {
+  const text = getLabelText(feat);
+  if (!text) return;
+  const [lng, lat] = feat._coords;
+  const lbl = L.marker([lat, lng], {
+    icon: L.divIcon({
+      className: 'map-label',
+      html: esc(text),
+      iconAnchor: [-8, 8],
+    }),
+    interactive: false,
+    zIndexOffset: -200,
+  });
+  S.labels.set(feat._fid, lbl);
+  S.labelGroups[String(feat._orde)].addLayer(lbl);
+}
+
+function applyLabels() {
+  ['1','2','3','rs','pl','pd'].forEach(k => {
+    const grp = S.labelGroups[k];
+    if (!grp) return;
+    const shouldShow = S.labelsOn && (S.visible[k] !== false);
+    if (shouldShow) { if (!map.hasLayer(grp)) grp.addTo(map); }
+    else            { if (map.hasLayer(grp))  map.removeLayer(grp); }
+  });
+}
+
+document.getElementById('fab-labels').addEventListener('click', () => {
+  S.labelsOn = !S.labelsOn;
+  document.getElementById('fab-labels').classList.toggle('fab-active', S.labelsOn);
+  applyLabels();
+  showToast(S.labelsOn ? '🏷️ Label ditampilkan' : '🏷️ Label disembunyikan');
+});
 
 /* ═══════════════════════════════════════════════════════
    POPUPS
@@ -841,19 +935,19 @@ function row(key, val) {
 }
 
 function buildPopup(feat) {
-  const p = feat.properties || {};
+  const p     = feat.properties || {};
   const [lng, lat] = feat._coords;
-  const cat = feat._category;
+  const cat   = feat._category;
   const color = feat._color;
-  const orde = feat._orde;
-  const fid = feat._fid;
+  const orde  = feat._orde;
 
   if (cat === 'bm') {
     const name = clean(p.Nama_BM) || clean(p.ID_Banchma) || '?';
     const sub  = [clean(p.Kecamatan), clean(p.Kabupaten)].filter(Boolean).join(', ');
     const nth  = fmtNum(p.Northing__, 4);
     const est  = fmtNum(p.Easting__m, 4);
-    const elh  = p.Ellip_Heig !== undefined && p.Ellip_Heig !== null && clean(String(p.Ellip_Heig)) ? parseFloat(p.Ellip_Heig).toFixed(3)+' m' : '';
+    const elh  = p.Ellip_Heig !== undefined && p.Ellip_Heig !== null && clean(String(p.Ellip_Heig))
+                 ? parseFloat(p.Ellip_Heig).toFixed(3) + ' m' : '';
     return `
 <div>
   <div class="pu-head" style="background:${color}">
@@ -862,9 +956,11 @@ function buildPopup(feat) {
     ${sub ? `<div class="pu-sub">📍 ${esc(sub)}</div>` : ''}
   </div>
   <div class="pu-body">
+    ${row('ID BM', p.ID_Banchma)}
     ${row('Lokasi', p.Lokasi)}
     ${row('Desa', p.Desa)}
     ${row('Kecamatan', p.Kecamatan)}
+    ${row('Kabupaten', p.Kabupaten)}
     ${nth ? `<div class="pu-row"><span class="pu-key">Northing (m)</span><span class="pu-val">${nth}</span></div>` : ''}
     ${est ? `<div class="pu-row"><span class="pu-key">Easting (m)</span><span class="pu-val">${est}</span></div>` : ''}
     ${elh ? `<div class="pu-row"><span class="pu-key">Tinggi Elipsoid</span><span class="pu-val">${elh}</span></div>` : ''}
@@ -877,22 +973,15 @@ function buildPopup(feat) {
       <button class="pu-btn" onclick="gCopy(${lat},${lng})">📋 Copy Coords</button>
     </div>
     <div class="pu-foot-full">
-      <button class="pu-btn primary" onclick="findNearestBM(${lat},${lng})">🎯 Nearest BM</button>
+      <button class="pu-btn primary" onclick="findNearestBM(${lat},${lng},${feat._fid})">🎯 Nearest BM dari Sini</button>
     </div>
   </div>
 </div>`;
+
   } else {
-    // Emergency Services
-    const ordeName = String(orde).toUpperCase();
-    const name  = clean(p.name) || '?';
-    const isRS  = orde === 'rs';
-    const isPL  = orde === 'pl';
-    const isPD  = orde === 'pd';
-
-    let addrLine = '';
-    if (isRS) { addrLine = [clean(p.alamat)].filter(Boolean).join(', '); }
-    // polisi/pemadam: skip unreliable address fields
-
+    const name    = clean(p.name) || '?';
+    const isRS    = orde === 'rs';
+    const addrLine = isRS ? clean(p.alamat) : '';
     let bodyRows = '';
     if (isRS) {
       bodyRows = `
@@ -904,17 +993,13 @@ function buildPopup(feat) {
         ${row('Email', p.email)}
       `;
     } else {
-      // polisi & pemadam: only show name (source data is unreliable)
       bodyRows = `${row('Nama', p.name)}`;
     }
-
-    const esType = String(orde);
     const catLabel = feat._label;
-
     return `
 <div>
   <div class="pu-head" style="background:${color}">
-    <div class="pu-pill">${catLabel.toUpperCase()}</div>
+    <div class="pu-pill">${esc(catLabel.toUpperCase())}</div>
     <div class="pu-title">${esc(name)}</div>
     ${addrLine ? `<div class="pu-sub">📍 ${esc(addrLine)}</div>` : ''}
   </div>
@@ -936,7 +1021,6 @@ function buildPopup(feat) {
    HIGHLIGHT
 ═══════════════════════════════════════════════════════ */
 function highlightFeature(fid) {
-  // un-highlight previous
   if (S.highlighted !== null && S.highlighted !== fid) {
     const prev = S.features.find(f => f._fid === S.highlighted);
     if (prev) unhighlightFeature(prev);
@@ -947,17 +1031,18 @@ function highlightFeature(fid) {
   const mk = S.markers.get(fid);
   if (!mk) return;
   if (feat._category === 'bm') {
-    mk.setStyle({ weight:4, color:'#fff', fillOpacity:1, radius:8 });
+    mk.setStyle({ weight:3, color:'#fff', fillOpacity:1, radius:11 });
   } else {
     const el = mk.getElement();
     if (el) el.classList.add('es-hl');
   }
 }
+
 function unhighlightFeature(feat) {
   const mk = S.markers.get(feat._fid);
   if (!mk) return;
   if (feat._category === 'bm') {
-    mk.setStyle({ weight:2.5, color:'#FFFFFF', fillOpacity:0.92, radius:6 });
+    mk.setStyle({ weight:2, color:'#FFFFFF', fillOpacity:0.9, radius:8 });
   } else {
     const el = mk.getElement();
     if (el) el.classList.remove('es-hl');
@@ -978,25 +1063,26 @@ function flyTo(fid) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   FIND NEAREST BM (from popup)
+   FIND NEAREST BM (from BM popup)
 ═══════════════════════════════════════════════════════ */
-function findNearestBM(lat, lng) {
+function findNearestBM(lat, lng, excludeFid) {
   map.closePopup();
-  nearestUserLat = lat;
-  nearestUserLng = lng;
-  showNearestPanel('bm');
+  showNearestPanel();
+  switchNpMode('nearestbm');
+  renderNearestBM(lat, lng, excludeFid);
 }
 
 /* ═══════════════════════════════════════════════════════
    FEATURE VISIBILITY
 ═══════════════════════════════════════════════════════ */
 function featureVisible(feat) {
-  if (!S.visible[feat._orde]) return false;
+  const k = feat._orde;
+  if (S.visible[k] === false) return false;
   if (feat._category === 'bm') {
-    if (S.filterOrde !== '' && String(feat._orde) !== S.filterOrde) return false;
+    if (S.filterOrde !== '' && String(k) !== S.filterOrde) return false;
     if (S.filterKec !== '') {
-      const k = clean((feat.properties || {}).Kecamatan);
-      if (!k || k.toLowerCase() !== S.filterKec.toLowerCase()) return false;
+      const kec = clean((feat.properties || {}).Kecamatan);
+      if (!kec || kec.toLowerCase() !== S.filterKec.toLowerCase()) return false;
     }
   }
   return true;
@@ -1011,37 +1097,24 @@ function applyVisibility() {
     if (vis) { if (!grp.hasLayer(mk)) grp.addLayer(mk); }
     else     { if (grp.hasLayer(mk)) grp.removeLayer(mk); }
   });
+  applyLabels();
   updateCounts();
 }
 
 function updateCounts() {
   const cnts = { 1:0, 2:0, 3:0, rs:0, pl:0, pd:0 };
-  S.features.forEach(feat => {
-    if (featureVisible(feat)) cnts[feat._orde]++;
-  });
-  ['1','2','3'].forEach(k => {
-    const el = document.getElementById('cnt-'+k);
-    if (el) el.textContent = cnts[k];
-  });
-  ['rs','pl','pd'].forEach(k => {
-    const el = document.getElementById('cnt-'+k);
-    if (el) el.textContent = cnts[k];
-  });
+  S.features.forEach(feat => { if (featureVisible(feat)) cnts[feat._orde]++; });
+  ['1','2','3'].forEach(k => { const el = document.getElementById('cnt-'+k); if (el) el.textContent = cnts[k]; });
+  ['rs','pl','pd'].forEach(k => { const el = document.getElementById('cnt-'+k); if (el) el.textContent = cnts[k]; });
 }
 
 function updateStats() {
-  ['1','2','3'].forEach(k => {
-    const el = document.getElementById('sn-'+k);
-    if (el) el.textContent = S.totals[k] ?? 0;
-  });
-  ['rs','pl','pd'].forEach(k => {
-    const el = document.getElementById('sn-'+k);
-    if (el) el.textContent = S.totals[k] ?? 0;
-  });
+  ['1','2','3'].forEach(k => { const el = document.getElementById('sn-'+k); if (el) el.textContent = S.totals[k] ?? 0; });
+  ['rs','pl','pd'].forEach(k => { const el = document.getElementById('sn-'+k); if (el) el.textContent = S.totals[k] ?? 0; });
 }
 
 /* ═══════════════════════════════════════════════════════
-   KECAMATAN FILTER BUILD
+   KECAMATAN FILTER
 ═══════════════════════════════════════════════════════ */
 function buildKecFilter() {
   const kecSet = new Set();
@@ -1056,8 +1129,7 @@ function buildKecFilter() {
   sel.innerHTML = '<option value="">Semua Kecamatan</option>';
   sorted.forEach(k => {
     const opt = document.createElement('option');
-    opt.value = k;
-    opt.textContent = k;
+    opt.value = k; opt.textContent = k;
     sel.appendChild(opt);
   });
   if (prev && sorted.includes(prev)) sel.value = prev;
@@ -1068,10 +1140,7 @@ function buildKecFilter() {
 ═══════════════════════════════════════════════════════ */
 async function tryFetch(paths) {
   for (const p of paths) {
-    try {
-      const r = await fetch(p);
-      if (r.ok) return await r.json();
-    } catch(e) {}
+    try { const r = await fetch(p); if (r.ok) return await r.json(); } catch(e) {}
   }
   return null;
 }
@@ -1079,29 +1148,22 @@ async function tryFetch(paths) {
 async function loadSource(src) {
   const data = await tryFetch(src.paths);
   if (!data) {
-    if (src.category === 'es') return []; // non-fatal
+    if (src.category === 'es') return [];
     throw new Error('Gagal memuat ' + src.label);
   }
-
   const feats = [];
-  const features = data.features || [];
-
-  features.forEach(feat => {
+  (data.features || []).forEach(feat => {
     if (!feat.geometry) return;
     let coords;
     if (src.geomType === 'multipoint') {
-      // MultiPoint: use coordinates[0]
       if (!feat.geometry.coordinates || !feat.geometry.coordinates[0]) return;
-      coords = feat.geometry.coordinates[0]; // [lng, lat]
+      coords = feat.geometry.coordinates[0];
     } else {
-      // Point or BM GeoJSON
       if (!feat.geometry.coordinates) return;
-      coords = feat.geometry.coordinates; // [lng, lat]
+      coords = feat.geometry.coordinates;
     }
-
     const lng = coords[0], lat = coords[1];
     if (isNaN(lat) || isNaN(lng)) return;
-
     const f = Object.assign({}, feat);
     f._fid      = _fid++;
     f._orde     = src.orde;
@@ -1109,10 +1171,8 @@ async function loadSource(src) {
     f._label    = src.label;
     f._category = src.category;
     f._coords   = [lng, lat];
-
     feats.push(f);
   });
-
   return feats;
 }
 
@@ -1121,19 +1181,19 @@ async function loadAll() {
   const allPromises = SOURCES.map(src => loadSource(src).catch(() => []));
   const results = await Promise.all(allPromises);
 
-  const bounds = [];
+  const bmBoundsArr = [];
   results.forEach((feats, i) => {
     const src = SOURCES[i];
     S.totals[src.orde] = feats.length;
     feats.forEach(f => {
       S.features.push(f);
       createMarker(f);
-      bounds.push([f._coords[1], f._coords[0]]);
+      if (src.category === 'bm') bmBoundsArr.push([f._coords[1], f._coords[0]]);
     });
   });
 
-  if (bounds.length > 0) {
-    S.dataBounds = L.latLngBounds(bounds);
+  if (bmBoundsArr.length > 0) {
+    S.dataBounds = L.latLngBounds(bmBoundsArr);
     map.fitBounds(S.dataBounds, { padding:[30, 30] });
   }
 
@@ -1148,27 +1208,19 @@ async function loadAll() {
 function doSearch(q) {
   const qlo = q.toLowerCase().trim();
   const resultsEl = document.getElementById('search-results');
-  if (!qlo) {
-    resultsEl.innerHTML = '';
-    resultsEl.classList.remove('visible');
-    return;
-  }
+  if (!qlo) { resultsEl.innerHTML = ''; resultsEl.classList.remove('visible'); return; }
 
   const matched = S.features.filter(f => {
     const p = f.properties || {};
     if (f._category === 'bm') {
-      return (
-        clean(p.Nama_BM).toLowerCase().includes(qlo) ||
-        clean(p.ID_Banchma).toLowerCase().includes(qlo) ||
-        clean(p.Kecamatan).toLowerCase().includes(qlo) ||
-        clean(p.Desa).toLowerCase().includes(qlo)
-      );
+      return clean(p.Nama_BM).toLowerCase().includes(qlo) ||
+             clean(p.ID_Banchma).toLowerCase().includes(qlo) ||
+             clean(p.Kecamatan).toLowerCase().includes(qlo) ||
+             clean(p.Desa).toLowerCase().includes(qlo);
     } else {
-      return (
-        clean(p.name).toLowerCase().includes(qlo) ||
-        clean(p.addr_city).toLowerCase().includes(qlo) ||
-        clean(p.rs).toLowerCase().includes(qlo)
-      );
+      return clean(p.name).toLowerCase().includes(qlo) ||
+             clean(p.rs).toLowerCase().includes(qlo) ||
+             clean(p.alamat).toLowerCase().includes(qlo);
     }
   }).slice(0, 20);
 
@@ -1180,17 +1232,18 @@ function doSearch(q) {
 
   resultsEl.innerHTML = matched.map(f => {
     const p = f.properties || {};
-    let name, sub, badgeClass;
+    let name, sub, badgeClass, label;
     if (f._category === 'bm') {
       name = clean(p.Nama_BM) || clean(p.ID_Banchma) || '?';
       sub  = clean(p.Kecamatan) || '—';
-      badgeClass = 'badge-'+f._orde;
+      badgeClass = 'badge-' + f._orde;
+      label = 'ORDE ' + f._orde;
     } else {
       name = clean(p.name) || '?';
-      sub  = clean(p.addr_city) || clean(p.alamat) || f._label;
-      badgeClass = 'badge-'+f._orde;
+      sub  = clean(p.alamat) || f._label;
+      badgeClass = 'badge-' + f._orde;
+      label = f._label;
     }
-    const label = f._category === 'bm' ? 'ORDE '+f._orde : f._label;
     return `<div class="sr-item" onclick="flyTo(${f._fid})">
       <div class="sr-dot" style="background:${f._color}"></div>
       <div style="flex:1;min-width:0">
@@ -1208,14 +1261,8 @@ document.getElementById('search-input').addEventListener('input', e => doSearch(
 /* ═══════════════════════════════════════════════════════
    FILTERS
 ═══════════════════════════════════════════════════════ */
-document.getElementById('fil-kec').addEventListener('change', e => {
-  S.filterKec = e.target.value;
-  applyVisibility();
-});
-document.getElementById('fil-orde').addEventListener('change', e => {
-  S.filterOrde = e.target.value;
-  applyVisibility();
-});
+document.getElementById('fil-kec').addEventListener('change', e => { S.filterKec = e.target.value; applyVisibility(); });
+document.getElementById('fil-orde').addEventListener('change', e => { S.filterOrde = e.target.value; applyVisibility(); });
 document.getElementById('btn-reset-filter').addEventListener('click', () => {
   S.filterKec = ''; S.filterOrde = '';
   document.getElementById('fil-kec').value = '';
@@ -1232,15 +1279,18 @@ function bindLayerChk(id, orde) {
   if (!chk) return;
   chk.addEventListener('change', () => {
     S.visible[orde] = chk.checked;
+    const grp = S.groups[String(orde)];
+    if (chk.checked) { if (!map.hasLayer(grp)) grp.addTo(map); }
+    else             { if (map.hasLayer(grp))  map.removeLayer(grp); }
     applyVisibility();
   });
 }
 bindLayerChk('chk-1', 1);
 bindLayerChk('chk-2', 2);
 bindLayerChk('chk-3', 3);
-bindLayerChk('chk-rs','rs');
-bindLayerChk('chk-pl','pl');
-bindLayerChk('chk-pd','pd');
+bindLayerChk('chk-rs', 'rs');
+bindLayerChk('chk-pl', 'pl');
+bindLayerChk('chk-pd', 'pd');
 
 /* ═══════════════════════════════════════════════════════
    LAYER GROUP COLLAPSE
@@ -1249,18 +1299,17 @@ document.querySelectorAll('.grp-toggle').forEach(btn => {
   btn.addEventListener('click', e => {
     e.stopPropagation();
     const grp = btn.dataset.grp;
-    const body = document.getElementById('grp-'+grp+'-body');
+    const body = document.getElementById('grp-' + grp + '-body');
     if (!body) return;
     body.classList.toggle('collapsed');
     btn.textContent = body.classList.contains('collapsed') ? '▶' : '▼';
   });
 });
-// Also clicking header itself
 document.querySelectorAll('.layer-group-header').forEach(hdr => {
   hdr.addEventListener('click', e => {
     if (e.target.classList.contains('grp-toggle')) return;
     const grp = hdr.id.replace('grp-','').replace('-hdr','');
-    const body = document.getElementById('grp-'+grp+'-body');
+    const body = document.getElementById('grp-' + grp + '-body');
     const btn  = hdr.querySelector('.grp-toggle');
     if (!body) return;
     body.classList.toggle('collapsed');
@@ -1271,7 +1320,7 @@ document.querySelectorAll('.layer-group-header').forEach(hdr => {
 /* ═══════════════════════════════════════════════════════
    PANEL TOGGLE (desktop)
 ═══════════════════════════════════════════════════════ */
-const panelEl = document.getElementById('panel');
+const panelEl  = document.getElementById('panel');
 const toggleBtn = document.getElementById('toggle-btn');
 toggleBtn.addEventListener('click', () => {
   panelEl.classList.toggle('collapsed');
@@ -1292,104 +1341,178 @@ mobBtn.addEventListener('click', () => {
 /* ═══════════════════════════════════════════════════════
    FAB ACTIONS
 ═══════════════════════════════════════════════════════ */
-document.getElementById('fab-in').addEventListener('click', () => map.zoomIn());
+document.getElementById('fab-in').addEventListener('click',  () => map.zoomIn());
 document.getElementById('fab-out').addEventListener('click', () => map.zoomOut());
 document.getElementById('fab-fit').addEventListener('click', () => {
-  if (S.dataBounds) map.fitBounds(S.dataBounds, { padding:[30,30] });
+  if (S.dataBounds) map.fitBounds(S.dataBounds, { padding:[30, 30] });
 });
+
+/* My Location — zoom & center only, no popup/label */
 document.getElementById('fab-locate').addEventListener('click', () => {
-  if (!navigator.geolocation) { showToast('❌ Geolokasi tidak didukung'); return; }
-  showToast('📍 Mencari lokasi Anda…');
-  navigator.geolocation.getCurrentPosition(pos => {
-    const lat = pos.coords.latitude, lng = pos.coords.longitude;
-    if (S.userMk) map.removeLayer(S.userMk);
-    if (S.userCircle) map.removeLayer(S.userCircle);
-    S.userMk = L.circleMarker([lat, lng], {
-      radius:8, color:'#fff', weight:3, fillColor:'#2563EB', fillOpacity:1
-    }).addTo(map).bindPopup('📍 Lokasi Anda').openPopup();
-    S.userCircle = L.circle([lat, lng], {
-      radius: pos.coords.accuracy, color:'#2563EB', fillColor:'#3B82F6', fillOpacity:.1, weight:1
-    }).addTo(map);
-    map.flyTo([lat, lng], 14, { duration:1.2 });
-    S.located = true;
-  }, err => { showToast('❌ Gagal mendapatkan lokasi'); }, { enableHighAccuracy:true, timeout:12000 });
-});
-
-/* ═══════════════════════════════════════════════════════
-   NEAREST PANEL
-═══════════════════════════════════════════════════════ */
-let nearestUserLat = null, nearestUserLng = null, activeNpTab = 'bm';
-
-document.getElementById('fab-nearest').addEventListener('click', () => {
   if (!navigator.geolocation) { showToast('❌ Geolokasi tidak didukung'); return; }
   showToast('📍 Mencari lokasi…');
   navigator.geolocation.getCurrentPosition(pos => {
-    nearestUserLat = pos.coords.latitude;
-    nearestUserLng = pos.coords.longitude;
-    showNearestPanel(activeNpTab);
-  }, err => { showToast('❌ Gagal mendapatkan lokasi'); }, { enableHighAccuracy:true, timeout:12000 });
+    const lat = pos.coords.latitude, lng = pos.coords.longitude;
+    if (S.userMk)     map.removeLayer(S.userMk);
+    if (S.userCircle) map.removeLayer(S.userCircle);
+    S.userMk = L.circleMarker([lat, lng], {
+      radius:8, color:'#fff', weight:3, fillColor:'#2563EB', fillOpacity:1,
+      interactive: false,
+    }).addTo(map);
+    if (pos.coords.accuracy > 0) {
+      S.userCircle = L.circle([lat, lng], {
+        radius: pos.coords.accuracy,
+        color:'#2563EB', fillColor:'#3B82F6', fillOpacity:.1, weight:1,
+        interactive: false,
+      }).addTo(map);
+    }
+    map.flyTo([lat, lng], 14, { duration:1.2 });
+    S.located = true;
+  }, () => showToast('❌ Gagal mendapatkan lokasi'), { enableHighAccuracy:true, timeout:12000 });
 });
 
-document.getElementById('np-close-btn').addEventListener('click', () => {
+/* Fullscreen */
+document.getElementById('fab-fs').addEventListener('click', () => {
+  const el = document.getElementById('app');
+  if (!document.fullscreenElement) {
+    const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+    if (fn) fn.call(el);
+    document.getElementById('fab-fs').classList.add('fab-active');
+  } else {
+    const fn = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen;
+    if (fn) fn.call(document);
+    document.getElementById('fab-fs').classList.remove('fab-active');
+  }
+});
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement) document.getElementById('fab-fs').classList.remove('fab-active');
+});
+document.addEventListener('webkitfullscreenchange', () => {
+  if (!document.webkitFullscreenElement) document.getElementById('fab-fs').classList.remove('fab-active');
+});
+
+/* Near Me FAB */
+document.getElementById('fab-nearest').addEventListener('click', () => {
+  showNearestPanel();
+  switchNpMode('nearme');
+});
+
+/* ═══════════════════════════════════════════════════════
+   NEAREST PANEL — CONTROLLER
+═══════════════════════════════════════════════════════ */
+let activeNearMeTab = 'bm';
+let nearMeLat = null, nearMeLng = null;
+
+function showNearestPanel() {
+  document.getElementById('nearest-panel').style.display = 'block';
+}
+function hideNearestPanel() {
   document.getElementById('nearest-panel').style.display = 'none';
+}
+document.getElementById('np-close-btn').addEventListener('click', hideNearestPanel);
+
+function switchNpMode(mode) {
+  document.querySelectorAll('.np-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  document.getElementById('np-nearme-pane').style.display    = mode === 'nearme'    ? 'block' : 'none';
+  document.getElementById('np-nearestbm-pane').style.display = mode === 'nearestbm' ? 'block' : 'none';
+}
+document.querySelectorAll('.np-mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchNpMode(btn.dataset.mode));
 });
 
+/* ─── Near Me: GPS-based ─── */
 document.querySelectorAll('.np-tab').forEach(tab => {
   tab.addEventListener('click', () => {
-    if (nearestUserLat === null) { showToast('📍 Tekan 🎯 untuk mendapatkan lokasi terlebih dahulu'); return; }
-    renderNearestResults(tab.dataset.cat);
+    if (nearMeLat === null) {
+      showToast('📍 Tekan "Gunakan Lokasi GPS Saya" terlebih dahulu');
+      return;
+    }
+    renderNearMeResults(tab.dataset.cat);
   });
 });
 
-function showNearestPanel(cat) {
-  document.getElementById('nearest-panel').style.display = 'block';
-  renderNearestResults(cat || activeNpTab);
+function doNearMe() {
+  if (!navigator.geolocation) { showToast('❌ Geolokasi tidak didukung'); return; }
+  showToast('📍 Mendapatkan lokasi GPS…');
+  navigator.geolocation.getCurrentPosition(pos => {
+    nearMeLat = pos.coords.latitude;
+    nearMeLng = pos.coords.longitude;
+    // Show subtle user dot
+    if (S.userMk)     map.removeLayer(S.userMk);
+    if (S.userCircle) map.removeLayer(S.userCircle);
+    S.userMk = L.circleMarker([nearMeLat, nearMeLng], {
+      radius:8, color:'#fff', weight:3, fillColor:'#2563EB', fillOpacity:1, interactive:false,
+    }).addTo(map);
+    S.located = true;
+    renderNearMeResults(activeNearMeTab);
+  }, () => showToast('❌ Gagal mendapatkan lokasi'), { enableHighAccuracy:true, timeout:12000 });
 }
 
-function renderNearestResults(cat) {
-  activeNpTab = cat;
+function renderNearMeResults(cat) {
+  activeNearMeTab = cat;
   document.querySelectorAll('.np-tab').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
 
   let pool;
   if (cat === 'bm') pool = S.features.filter(f => f._category === 'bm');
-  else pool = S.features.filter(f => f._orde === cat);
+  else              pool = S.features.filter(f => String(f._orde) === cat);
 
-  const withDist = pool.map(f => {
-    const [lng, lat] = f._coords;
-    return { f, dist: haversine(nearestUserLat, nearestUserLng, lat, lng) };
-  }).sort((a,b) => a.dist - b.dist).slice(0, 3);
+  const top = pool
+    .map(f => { const [lng, lat] = f._coords; return { f, dist: haversine(nearMeLat, nearMeLng, lat, lng) }; })
+    .sort((a, b) => a.dist - b.dist)
+    .slice(0, 5);
 
   const container = document.getElementById('np-results');
-  if (!withDist.length) {
-    container.innerHTML = '<div class="np-empty">Tidak ada data tersedia</div>';
+  if (!top.length) {
+    container.innerHTML = '<div class="np-empty">Tidak ada data tersedia untuk kategori ini.</div>';
     return;
   }
-
-  container.innerHTML = withDist.map(({ f, dist }) => {
-    const p = f.properties || {};
-    const name = f._category === 'bm'
-      ? (clean(p.Nama_BM) || clean(p.ID_Banchma) || '?')
-      : (clean(p.name) || '?');
-    const sub = f._category === 'bm'
-      ? (clean(p.Kecamatan) || '—')
-      : f._label;
-    const distStr = dist >= 1000 ? (dist/1000).toFixed(1)+' km' : Math.round(dist)+' m';
-    return `<div class="np-item">
-      <div class="np-dot" style="background:${f._color}"></div>
-      <div class="np-info">
-        <div class="np-name">${esc(name)}</div>
-        <div class="np-sub">${esc(sub)} · ${distStr}</div>
-      </div>
-      <div class="np-actions">
-        <button onclick="flyTo(${f._fid})" class="np-btn" title="Zoom ke lokasi">🔍</button>
-        <button onclick="gNav(${f._coords[1]},${f._coords[0]})" class="np-btn" title="Navigasi">🧭</button>
-      </div>
-    </div>`;
+  container.innerHTML = top.map(({ f, dist }) => {
+    const p    = f.properties || {};
+    const name = f._category === 'bm' ? (clean(p.Nama_BM) || clean(p.ID_Banchma) || '?') : (clean(p.name) || '?');
+    const sub  = f._category === 'bm' ? ('ORDE ' + f._orde + (clean(p.Kecamatan) ? ' · ' + clean(p.Kecamatan) : '')) : f._label;
+    return buildNpItem(f, name, sub, dist);
   }).join('');
 }
 
+/* ─── Nearest BM from a selected BM ─── */
+function renderNearestBM(refLat, refLng, excludeFid) {
+  const pool = S.features.filter(f => f._category === 'bm' && f._fid !== excludeFid);
+  const top  = pool
+    .map(f => { const [lng, lat] = f._coords; return { f, dist: haversine(refLat, refLng, lat, lng) }; })
+    .sort((a, b) => a.dist - b.dist)
+    .slice(0, 5);
+
+  const container = document.getElementById('np-bm-results');
+  if (!top.length) {
+    container.innerHTML = '<div class="np-empty">Tidak ada BM lain tersedia.</div>';
+    return;
+  }
+  container.innerHTML = top.map(({ f, dist }) => {
+    const p    = f.properties || {};
+    const name = clean(p.Nama_BM) || clean(p.ID_Banchma) || '?';
+    const sub  = 'ORDE ' + f._orde + (clean(p.Kecamatan) ? ' · ' + clean(p.Kecamatan) : '');
+    return buildNpItem(f, name, sub, dist);
+  }).join('');
+}
+
+/* ─── Shared item renderer ─── */
+function buildNpItem(f, name, sub, dist) {
+  return `<div class="np-item">
+    <div class="np-dot" style="background:${f._color}"></div>
+    <div class="np-info">
+      <div class="np-name">${esc(name)}</div>
+      <div class="np-sub">${esc(sub)}</div>
+    </div>
+    <div class="np-dist">${fmtDist(dist)}</div>
+    <div class="np-actions">
+      <button onclick="flyTo(${f._fid})" class="np-btn" title="Zoom ke lokasi">🔍</button>
+      <button onclick="gNav(${f._coords[1]},${f._coords[0]})" class="np-btn" title="Navigasi">🧭</button>
+    </div>
+  </div>`;
+}
+
 /* ═══════════════════════════════════════════════════════
-   TOUCH DRAG / PANEL HEADER (mobile feel)
+   TOUCH DRAG (mobile panel close)
 ═══════════════════════════════════════════════════════ */
 (function() {
   let startX, isDragging = false;
@@ -1398,8 +1521,7 @@ function renderNearestResults(cat) {
   ph.addEventListener('touchstart', e => { startX = e.touches[0].clientX; isDragging = true; }, { passive:true });
   ph.addEventListener('touchmove', e => {
     if (!isDragging) return;
-    const dx = e.touches[0].clientX - startX;
-    if (dx < -40) {
+    if (e.touches[0].clientX - startX < -40) {
       panelEl.classList.remove('open');
       mobBtn.textContent = 'Buka Panel';
       panelOpen = false;
@@ -1421,14 +1543,8 @@ map.on('click', () => {
    INIT
 ═══════════════════════════════════════════════════════ */
 loadAll()
-  .then(() => {
-    setLoadMsg('Selesai!');
-    setTimeout(hideLoading, 500);
-  })
-  .catch(err => {
-    showError(err.message || 'Gagal memuat data');
-    hideLoading();
-  });
+  .then(() => { setLoadMsg('Selesai!'); setTimeout(hideLoading, 500); })
+  .catch(err => { showError(err.message || 'Gagal memuat data'); hideLoading(); });
 </script>
 </body>
 </html>
