@@ -1,36 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0F172A" />
-  <meta name="description" content="BM Locator — Professional geospatial platform for locating and visualizing geodetic benchmarks and emergency facilities across the Blok Rokan survey area. Built by PTSI." />
-  <title>BM Locator — PTSI Blok Rokan</title>
+  <meta name="description" content="Benchmark Locator — Platform WebGIS profesional untuk menemukan dan memvisualisasikan titik-titik kontrol geodesi (BM) di wilayah Blok Rokan. Dikembangkan oleh PTSI." />
+  <title>Benchmark Locator — PTSI</title>
   <link rel="icon" type="image/jpeg" href="logoptsi.jpg" />
 
   <style>
     /* ================================================================
-       DESIGN TOKENS — matches webgis.html exactly
+       DESIGN TOKENS — sinkron dengan webgis.html
     ================================================================ */
     :root {
-      --accent:        #2563EB;
-      --accent-dark:   #1D4ED8;
-      --accent-xdark:  #1E3A8A;
-      --accent-light:  #EFF6FF;
+      --accent:       #2563EB;
+      --accent-dark:  #1D4ED8;
+      --accent-xdark: #1E3A8A;
+      --accent-light: #EFF6FF;
       --c1: #3B82F6;
       --c2: #22C55E;
       --c3: #F97316;
-      --crs: #EF4444;
-      --cpl: #1D4ED8;
-      --cpd: #F59E0B;
-      --white:     #FFFFFF;
-      --surface:   #F8FAFC;
-      --surface2:  #F1F5F9;
-      --border:    #E2E8F0;
-      --border2:   #CBD5E1;
-      --muted:     #94A3B8;
-      --body:      #475569;
-      --heading:   #0F172A;
+      --white:    #FFFFFF;
+      --surface:  #F8FAFC;
+      --surface2: #F1F5F9;
+      --border:   #E2E8F0;
+      --border2:  #CBD5E1;
+      --muted:    #94A3B8;
+      --body:     #475569;
+      --heading:  #0F172A;
       --sh-sm: 0 2px 8px rgba(0,0,0,.08);
       --sh-md: 0 4px 16px rgba(0,0,0,.10), 0 1px 4px rgba(0,0,0,.06);
       --sh-lg: 0 12px 32px rgba(0,0,0,.12), 0 4px 8px rgba(0,0,0,.06);
@@ -38,8 +35,10 @@
       --radius:    10px;
       --radius-lg: 14px;
       --radius-xl: 20px;
-      --dur: 220ms;
-      --ease-out: cubic-bezier(.2,.8,.4,1);
+      --dur:        220ms;
+      --dur-fast:   120ms;
+      --ease:       cubic-bezier(.4,0,.2,1);
+      --ease-out:   cubic-bezier(.2,.8,.4,1);
       --ease-spring: cubic-bezier(.34,1.56,.64,1);
     }
 
@@ -54,11 +53,12 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-size: 15px;
       line-height: 1.6;
       color: var(--body);
       background: var(--white);
+      -webkit-font-smoothing: antialiased;
       -webkit-tap-highlight-color: transparent;
     }
     a { color: inherit; text-decoration: none; }
@@ -76,7 +76,6 @@
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border-bottom: 1px solid rgba(255,255,255,.07);
-      transition: background var(--dur);
     }
 
     .nav-inner {
@@ -113,7 +112,7 @@
     }
     .nav-sub {
       font-size: 11px;
-      color: rgba(255,255,255,.45);
+      color: rgba(255,255,255,.4);
       display: none;
     }
     @media (min-width: 480px) { .nav-sub { display: block; } }
@@ -127,7 +126,7 @@
     .nav-link {
       font-size: 13px;
       font-weight: 500;
-      color: rgba(255,255,255,.65);
+      color: rgba(255,255,255,.6);
       padding: 6px 12px;
       border-radius: var(--radius-sm);
       transition: color var(--dur), background var(--dur);
@@ -167,8 +166,8 @@
       position: absolute; inset: 0;
       background: linear-gradient(
         to bottom,
-        rgba(15,23,42,.50) 0%,
-        rgba(15,23,42,.68) 50%,
+        rgba(15,23,42,.48) 0%,
+        rgba(15,23,42,.65) 50%,
         rgba(15,23,42,.88) 100%
       );
       pointer-events: none;
@@ -176,8 +175,16 @@
 
     .hero-glow {
       position: absolute; inset: 0;
-      background: radial-gradient(ellipse 65% 55% at 50% 44%, rgba(37,99,235,.20) 0%, transparent 70%);
+      background: radial-gradient(ellipse 65% 55% at 50% 44%, rgba(37,99,235,.22) 0%, transparent 70%);
       pointer-events: none;
+    }
+
+    /* Gradient accent bar across bottom of hero — matches panel header */
+    .hero-accent-bar {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--c1) 0%, var(--c2) 50%, var(--c3) 100%);
     }
 
     .hero-content {
@@ -208,16 +215,16 @@
       font-weight: 700;
       letter-spacing: 2.5px;
       text-transform: uppercase;
-      color: rgba(255,255,255,.45);
+      color: rgba(255,255,255,.4);
       margin-bottom: 14px;
       animation: fadeUp .7s .12s var(--ease-out) both;
     }
 
     .hero-title {
-      font-size: clamp(30px, 6.5vw, 50px);
+      font-size: clamp(30px, 6.5vw, 52px);
       font-weight: 800;
       color: var(--white);
-      line-height: 1.12;
+      line-height: 1.1;
       letter-spacing: -.8px;
       margin-bottom: 18px;
       animation: fadeUp .7s .16s var(--ease-out) both;
@@ -232,9 +239,9 @@
 
     .hero-desc {
       font-size: clamp(14px, 2vw, 17px);
-      color: rgba(255,255,255,.6);
+      color: rgba(255,255,255,.58);
       line-height: 1.75;
-      max-width: 520px;
+      max-width: 500px;
       margin: 0 auto 36px;
       animation: fadeUp .7s .20s var(--ease-out) both;
     }
@@ -268,7 +275,7 @@
       box-shadow: 0 8px 30px rgba(37,99,235,.55);
     }
     .btn-primary:active { transform: scale(.97); }
-    .btn-primary svg { width: 18px; height: 18px; }
+    .btn-primary svg { width: 18px; height: 18px; flex-shrink: 0; }
 
     .btn-secondary {
       display: inline-flex;
@@ -276,7 +283,7 @@
       gap: 7px;
       padding: 13px 22px;
       background: rgba(255,255,255,.09);
-      color: rgba(255,255,255,.85);
+      color: rgba(255,255,255,.82);
       font-size: 15px;
       font-weight: 600;
       border-radius: var(--radius-lg);
@@ -291,7 +298,7 @@
     }
     .btn-secondary svg { width: 16px; height: 16px; }
 
-    /* stat chips inside hero */
+    /* hero chips */
     .hero-chips {
       display: flex;
       flex-wrap: wrap;
@@ -312,11 +319,11 @@
       backdrop-filter: blur(4px);
       font-size: 12px;
       font-weight: 600;
-      color: rgba(255,255,255,.65);
+      color: rgba(255,255,255,.62);
     }
     .hero-chip strong { color: var(--white); }
 
-    /* scroll indicator */
+    /* scroll hint */
     .scroll-hint {
       position: absolute;
       bottom: 28px; left: 50%;
@@ -326,11 +333,11 @@
       flex-direction: column;
       align-items: center;
       gap: 5px;
-      color: rgba(255,255,255,.35);
+      color: rgba(255,255,255,.32);
       font-size: 11px;
       animation: bobUp 2s ease-in-out infinite;
     }
-    @keyframes bobUp { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-5px)} }
+    @keyframes bobUp { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-6px)} }
     .scroll-hint svg { width: 18px; height: 18px; }
 
     /* ================================================================
@@ -433,7 +440,7 @@
     .about-stat.as1::before { background: var(--c1); }
     .about-stat.as2::before { background: var(--c2); }
     .about-stat.as3::before { background: var(--c3); }
-    .about-stat.as4::before { background: var(--crs); }
+    .about-stat.as4::before { background: linear-gradient(90deg, var(--c1), var(--c2), var(--c3)); }
 
     .as-n {
       font-size: 28px;
@@ -444,7 +451,7 @@
     .as1 .as-n { color: var(--c1); }
     .as2 .as-n { color: #16A34A; }
     .as3 .as-n { color: #EA580C; }
-    .as4 .as-n { color: var(--crs); }
+    .as4 .as-n { color: var(--heading); }
 
     .as-l {
       font-size: 11px;
@@ -491,8 +498,8 @@
       top: 0; left: 0; right: 0;
       height: 4px;
     }
-    .cap-card.bm::before { background: linear-gradient(90deg, var(--c1), var(--c2)); }
-    .cap-card.es::before { background: linear-gradient(90deg, var(--crs), var(--cpd)); }
+    .cap-card.bm::before  { background: linear-gradient(90deg, var(--c1), var(--c2), var(--c3)); }
+    .cap-card.nav::before { background: linear-gradient(90deg, var(--accent), #818CF8); }
 
     .cap-icon {
       font-size: 32px;
@@ -534,17 +541,17 @@
       border-radius: 50%;
       flex-shrink: 0;
     }
-    .bm .cap-feat-dot { background: var(--c1); }
-    .es .cap-feat-dot { background: var(--crs); }
+    .bm  .cap-feat-dot { background: var(--c1); }
+    .nav .cap-feat-dot { background: var(--accent); }
 
     /* ================================================================
-       WEBGIS PREVIEW SECTION
+       PREVIEW SECTION
     ================================================================ */
     #preview { background: var(--heading); }
 
     #preview .section-label { color: #60A5FA; }
     #preview .section-title { color: var(--white); }
-    #preview .section-desc { color: rgba(255,255,255,.55); }
+    #preview .section-desc  { color: rgba(255,255,255,.50); }
 
     .preview-frame {
       margin-top: 40px;
@@ -565,10 +572,7 @@
       border-bottom: 1px solid rgba(255,255,255,.07);
     }
 
-    .pf-dot {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-    }
+    .pf-dot { width: 10px; height: 10px; border-radius: 50%; }
     .pf-dot.r { background: #EF4444; }
     .pf-dot.y { background: #F59E0B; }
     .pf-dot.g { background: #22C55E; }
@@ -579,11 +583,11 @@
       border-radius: 99px;
       padding: 4px 14px;
       font-size: 11px;
-      color: rgba(255,255,255,.4);
+      color: rgba(255,255,255,.38);
       margin-left: 8px;
     }
 
-    /* Map preview mock */
+    /* Map area */
     .pf-map {
       background: linear-gradient(135deg, #1a2a3a 0%, #0d1f2d 100%);
       height: 360px;
@@ -596,7 +600,6 @@
 
     @media (max-width: 600px) { .pf-map { height: 240px; } }
 
-    /* Map mock tiles */
     .pf-grid {
       position: absolute; inset: 0;
       background-image:
@@ -605,7 +608,6 @@
       background-size: 40px 40px;
     }
 
-    /* Simulated markers */
     .pf-mk {
       position: absolute;
       width: 10px; height: 10px;
@@ -614,33 +616,39 @@
       box-shadow: 0 0 8px rgba(0,0,0,.4);
     }
 
-    /* Panel mock */
+    /* Mock sidebar — BM only (no ES rows) */
     .pf-panel {
       position: absolute;
       left: 0; top: 0; bottom: 0;
       width: 160px;
       background: rgba(255,255,255,.97);
       border-right: 1px solid var(--border);
-      padding: 10px 10px;
+      padding: 0;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      overflow: hidden;
     }
 
     .pf-ph {
       background: var(--heading);
-      border-radius: 4px;
-      padding: 7px 8px;
-      margin-bottom: 4px;
+      padding: 8px 8px 0;
     }
     .pf-ph-title { font-size: 8px; font-weight: 700; color: var(--white); }
-    .pf-ph-sub   { font-size: 7px; color: rgba(255,255,255,.4); margin-top: 1px; }
+    .pf-ph-sub   { font-size: 7px; color: rgba(255,255,255,.38); margin-top: 1px; padding-bottom: 8px; }
+    /* gradient bar */
+    .pf-ph-bar {
+      height: 2px;
+      background: linear-gradient(90deg, var(--c1), var(--c2), var(--c3));
+    }
+
+    .pf-body { padding: 8px; display: flex; flex-direction: column; gap: 5px; }
 
     .pf-search {
-      height: 18px;
+      height: 16px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 4px;
+      margin-bottom: 2px;
     }
 
     .pf-row {
@@ -649,37 +657,41 @@
       gap: 5px;
       padding: 2px 0;
     }
-    .pf-row-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .pf-row-dot  { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
     .pf-row-line { height: 5px; background: var(--surface2); border-radius: 2px; flex: 1; }
-    .pf-row-cnt { width: 14px; height: 8px; background: var(--border); border-radius: 99px; flex-shrink: 0; }
-
-    .pf-sec { font-size: 6px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; padding: 4px 0 2px; }
-
-    .pf-cta {
+    /* pill toggle mock */
+    .pf-pill {
+      width: 18px; height: 10px; border-radius: 99px;
+      flex-shrink: 0; position: relative;
+    }
+    .pf-pill-thumb {
       position: absolute;
-      bottom: 40px; left: 50%; right: auto;
-      transform: translateX(-50%);
-      background: var(--accent);
-      color: var(--white);
-      border-radius: var(--radius-lg);
-      padding: 12px 28px;
-      font-size: 14px;
-      font-weight: 700;
-      box-shadow: 0 4px 20px rgba(37,99,235,.5);
-      white-space: nowrap;
-      transition: background var(--dur), transform var(--dur) var(--ease-spring);
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
+      top: 2px; left: 2px;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--white);
     }
-    .pf-cta:hover {
-      background: var(--accent-dark);
-      transform: translateX(-50%) translateY(-2px);
+    .pf-pill.on { }
+    .pf-pill.on .pf-pill-thumb { left: calc(100% - 8px); }
+
+    .pf-sec { font-size: 6px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; padding: 3px 0 1px; }
+
+    .pf-stat-row {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; margin-top: 2px;
     }
-    .pf-cta svg { width: 16px; height: 16px; }
+    .pf-stat {
+      height: 22px; border: 1px solid var(--border); border-radius: 3px;
+      background: var(--surface); position: relative; overflow: hidden;
+    }
+    .pf-stat::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    }
+    .pf-stat.s1::before { background: var(--c1); }
+    .pf-stat.s2::before { background: var(--c2); }
+    .pf-stat.s3::before { background: var(--c3); }
 
     /* ================================================================
-       HOW IT WORKS SECTION
+       HOW IT WORKS
     ================================================================ */
     #howitworks { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 
@@ -700,6 +712,11 @@
       border-radius: var(--radius-lg);
       padding: 24px 20px;
       position: relative;
+      transition: box-shadow var(--dur), transform var(--dur) var(--ease-out);
+    }
+    .step-card:hover {
+      box-shadow: var(--sh-md);
+      transform: translateY(-2px);
     }
 
     .step-num {
@@ -777,13 +794,13 @@
     }
     .footer-brand-text .fb-sub {
       font-size: 11px;
-      color: rgba(255,255,255,.35);
+      color: rgba(255,255,255,.32);
       margin-top: 1px;
     }
 
     .footer-desc {
       font-size: 12px;
-      color: rgba(255,255,255,.35);
+      color: rgba(255,255,255,.32);
       line-height: 1.7;
       max-width: 260px;
       margin-top: 10px;
@@ -798,7 +815,7 @@
     .footer-links h4 {
       font-size: 11px;
       font-weight: 700;
-      color: rgba(255,255,255,.45);
+      color: rgba(255,255,255,.42);
       text-transform: uppercase;
       letter-spacing: 1.2px;
       margin-bottom: 4px;
@@ -806,7 +823,7 @@
 
     .footer-link {
       font-size: 13px;
-      color: rgba(255,255,255,.5);
+      color: rgba(255,255,255,.48);
       transition: color var(--dur);
     }
     .footer-link:hover { color: var(--white); }
@@ -823,25 +840,22 @@
 
     .footer-copy {
       font-size: 12px;
-      color: rgba(255,255,255,.28);
+      color: rgba(255,255,255,.26);
     }
 
-    .footer-badges {
-      display: flex;
-      gap: 8px;
-    }
+    .footer-badges { display: flex; gap: 8px; }
 
     .fbadge {
       font-size: 10px;
       font-weight: 600;
-      color: rgba(255,255,255,.35);
+      color: rgba(255,255,255,.32);
       padding: 3px 9px;
       border-radius: 99px;
-      border: 1px solid rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.10);
     }
 
     /* ================================================================
-       RESPONSIVE UTILITIES
+       RESPONSIVE
     ================================================================ */
     @media (max-width: 700px) {
       .section-wrap { padding: 56px 20px; }
@@ -855,22 +869,22 @@
 <!-- ================================================================
      NAVIGATION
 ================================================================ -->
-<nav class="nav" aria-label="Main navigation">
+<nav class="nav" aria-label="Navigasi utama">
   <div class="nav-inner">
     <div class="nav-brand">
       <div class="nav-logo">
-        <img src="logoptsi.jpg" alt="PTSI Logo" />
+        <img src="logoptsi.jpg" alt="Logo PTSI" />
       </div>
       <div>
-        <div class="nav-name">BM Locator</div>
+        <div class="nav-name">Benchmark Locator</div>
         <div class="nav-sub">PTSI — Blok Rokan</div>
       </div>
     </div>
     <div class="nav-links">
-      <a href="#about" class="nav-link">About</a>
-      <a href="#capabilities" class="nav-link">Features</a>
-      <a href="webgis.html" class="nav-link nav-cta" aria-label="Open WebGIS application">
-        Open WebGIS
+      <a href="#about" class="nav-link">Tentang</a>
+      <a href="#capabilities" class="nav-link">Fitur</a>
+      <a href="webgis.html" class="nav-link nav-cta" aria-label="Buka aplikasi Benchmark Locator">
+        Buka Peta
       </a>
     </div>
   </div>
@@ -886,7 +900,7 @@
   <div class="hero-content">
 
     <div class="hero-logo-wrap">
-      <img src="logoptsi.jpg" alt="PTSI Logo" />
+      <img src="logoptsi.jpg" alt="Logo PTSI" />
     </div>
 
     <p class="hero-eyebrow">PT. Survey Indonesia — Blok Rokan</p>
@@ -896,34 +910,37 @@
     </h1>
 
     <p class="hero-desc">
-      Professional geospatial platform for locating and visualizing geodetic control points
-      and emergency facilities across the Blok Rokan survey area.
+      Platform WebGIS profesional untuk menemukan dan memvisualisasikan
+      titik-titik kontrol geodesi Benchmark di wilayah Blok Rokan, Riau.
     </p>
 
     <div class="hero-actions">
-      <a href="webgis.html" class="btn-primary" aria-label="Explore WebGIS application">
+      <a href="webgis.html" class="btn-primary" aria-label="Buka Benchmark Locator">
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d="M10 2a8 8 0 100 16A8 8 0 0010 2z"/>
-          <path d="M10 6v4l2.5 2.5"/>
-          <circle cx="10" cy="10" r="1.5" fill="currentColor" stroke="none"/>
+          <circle cx="10" cy="10" r="8"/>
+          <circle cx="10" cy="10" r="2.5" fill="currentColor" stroke="none"/>
+          <line x1="10" y1="2" x2="10" y2="5"/>
+          <line x1="10" y1="15" x2="10" y2="18"/>
+          <line x1="2" y1="10" x2="5" y2="10"/>
+          <line x1="15" y1="10" x2="18" y2="10"/>
         </svg>
-        Explore WebGIS
+        Buka Benchmark Locator
       </a>
       <a href="#about" class="btn-secondary">
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <circle cx="10" cy="10" r="8"/>
           <path d="M10 9v5M10 7v1"/>
         </svg>
-        Learn More
+        Pelajari Lebih Lanjut
       </a>
     </div>
 
-    <div class="hero-chips" aria-label="Platform highlights">
+    <div class="hero-chips" aria-label="Highlights platform">
       <div class="hero-chip">📍 <strong>BM Orde 1 / 2 / 3</strong></div>
-      <div class="hero-chip">🏥 Rumah Sakit</div>
-      <div class="hero-chip">🚔 Polisi</div>
-      <div class="hero-chip">🚒 Pemadam</div>
-      <div class="hero-chip">🛰 Satelit Basemap</div>
+      <div class="hero-chip">🔍 Pencarian &amp; Filter</div>
+      <div class="hero-chip">🎯 Nearest BM</div>
+      <div class="hero-chip">📸 Foto Lapangan</div>
+      <div class="hero-chip">🛰 Citra Satelit</div>
     </div>
 
   </div>
@@ -932,8 +949,10 @@
     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
       <polyline points="4,7 10,13 16,7"/>
     </svg>
-    Scroll
+    Gulir ke bawah
   </div>
+
+  <div class="hero-accent-bar" aria-hidden="true"></div>
 </section>
 
 <!-- ================================================================
@@ -941,8 +960,8 @@
 ================================================================ -->
 <section id="about" aria-labelledby="about-title">
   <div class="section-wrap">
-    <p class="section-label">About</p>
-    <h2 class="section-title" id="about-title">Apa itu BM Locator?</h2>
+    <p class="section-label">Tentang</p>
+    <h2 class="section-title" id="about-title">Apa itu Benchmark Locator?</h2>
     <p class="section-desc">
       Platform WebGIS berbasis browser untuk survei geodesi dan operasi lapangan di wilayah Blok Rokan, Riau.
     </p>
@@ -950,10 +969,10 @@
     <div class="about-grid">
       <div class="about-text">
         <p>
-          <strong>BM Locator</strong> adalah platform peta interaktif yang dikembangkan oleh
+          <strong>Benchmark Locator</strong> adalah platform peta interaktif yang dikembangkan oleh
           PT. Survey Indonesia (PTSI) untuk mendukung kegiatan survei dan pemetaan di wilayah
           Blok Rokan. Platform ini menyediakan akses cepat ke data titik Benchmark (BM) geodesi
-          dan fasilitas darurat di lapangan.
+          Orde 1, 2, dan 3 beserta foto lapangan tiap titik.
         </p>
         <p>
           Dirancang untuk digunakan langsung di browser — tanpa instalasi, tanpa backend kompleks.
@@ -969,7 +988,7 @@
         </div>
       </div>
 
-      <div class="about-stats" aria-label="Data summary">
+      <div class="about-stats" aria-label="Ringkasan data">
         <div class="about-stat as1">
           <div class="as-n">12</div>
           <div class="as-l">BM Orde 1</div>
@@ -983,8 +1002,8 @@
           <div class="as-l">BM Orde 3</div>
         </div>
         <div class="about-stat as4">
-          <div class="as-n">92+</div>
-          <div class="as-l">Fasilitas Darurat</div>
+          <div class="as-n">429+</div>
+          <div class="as-l">Total Benchmark</div>
         </div>
       </div>
     </div>
@@ -999,7 +1018,7 @@
     <p class="section-label">Fitur Utama</p>
     <h2 class="section-title" id="cap-title">Dua Kapabilitas Inti</h2>
     <p class="section-desc">
-      BM Locator berfokus pada dua kategori data utama yang relevan untuk operasi survei dan keselamatan lapangan.
+      BM Locator berfokus pada visualisasi data Benchmark dan kemudahan navigasi ke titik kontrol geodesi di lapangan.
     </p>
 
     <div class="cap-grid">
@@ -1010,7 +1029,8 @@
         <h3 class="cap-title">Pemetaan Benchmark (BM)</h3>
         <p class="cap-desc">
           Visualisasi dan navigasi ke titik-titik kontrol geodesi Orde 1, 2, dan 3
-          di seluruh wilayah Blok Rokan. Dilengkapi data koordinat UTM, tinggi elipsoid, dan lokasi administratif.
+          di seluruh wilayah Blok Rokan. Dilengkapi data koordinat UTM, tinggi elipsoid,
+          lokasi administratif, dan foto lapangan.
         </p>
         <div class="cap-features">
           <div class="cap-feat">
@@ -1023,7 +1043,7 @@
           </div>
           <div class="cap-feat">
             <div class="cap-feat-dot"></div>
-            Informasi koordinat: Lintang/Bujur, UTM, Tinggi Elipsoid
+            Detail koordinat: Lintang/Bujur, Northing/Easting, Tinggi Elipsoid
           </div>
           <div class="cap-feat">
             <div class="cap-feat-dot"></div>
@@ -1031,7 +1051,7 @@
           </div>
           <div class="cap-feat">
             <div class="cap-feat-dot"></div>
-            Pencarian BM terdekat dari lokasi pengguna
+            Foto lapangan tiap titik BM (jika tersedia)
           </div>
           <div class="cap-feat">
             <div class="cap-feat-dot"></div>
@@ -1040,43 +1060,43 @@
         </div>
       </div>
 
-      <!-- Emergency Services -->
-      <div class="cap-card es">
-        <div class="cap-icon">🚨</div>
-        <h3 class="cap-title">Emergency Services</h3>
+      <!-- Navigation & Search -->
+      <div class="cap-card nav">
+        <div class="cap-icon">🎯</div>
+        <h3 class="cap-title">Navigasi &amp; Pencarian Terdekat</h3>
         <p class="cap-desc">
-          Lokasi fasilitas darurat — rumah sakit, kantor polisi, dan pos pemadam kebakaran —
-          di seluruh wilayah Riau. Pendukung keselamatan tim di lapangan.
+          Fitur canggih untuk membantu tim lapangan menemukan titik BM terdekat dari posisi
+          mereka saat ini, atau dari BM manapun yang sedang ditampilkan.
         </p>
         <div class="cap-features">
           <div class="cap-feat">
             <div class="cap-feat-dot"></div>
-            <span>🏥 Rumah sakit (80+ fasilitas)</span>
+            <strong>Near Me</strong> — temukan BM terdekat dari posisi GPS Anda
           </div>
           <div class="cap-feat">
             <div class="cap-feat-dot"></div>
-            <span>🚔 Kantor polisi di wilayah survey</span>
+            <strong>Nearest BM</strong> — cari BM terdekat dari titik BM manapun
           </div>
           <div class="cap-feat">
             <div class="cap-feat-dot"></div>
-            <span>🚒 Pos pemadam kebakaran</span>
+            Tampilkan jarak dalam meter atau kilometer
           </div>
           <div class="cap-feat">
             <div class="cap-feat-dot"></div>
-            Pencarian fasilitas terdekat dari posisi pengguna
+            Zoom langsung ke hasil pencarian di peta
           </div>
           <div class="cap-feat">
             <div class="cap-feat-dot"></div>
-            Informasi nama, alamat, dan jenis fasilitas
+            Toggle label nama BM di seluruh peta
           </div>
           <div class="cap-feat">
             <div class="cap-feat-dot"></div>
-            Navigasi langsung ke fasilitas via Google Maps
+            Tiga pilihan basemap: Satelit, Terrain, Street
           </div>
         </div>
       </div>
 
-    </div><!-- end cap-grid -->
+    </div>
   </div>
 </section>
 
@@ -1095,28 +1115,29 @@
       <div class="step-card">
         <div class="step-num">1</div>
         <div class="step-icon">🛰</div>
-        <h3 class="step-title">Buka WebGIS</h3>
+        <h3 class="step-title">Buka Benchmark Locator</h3>
         <p class="step-desc">
-          Klik tombol <strong>Explore WebGIS</strong> untuk membuka peta interaktif.
-          Peta akan menampilkan citra satelit wilayah Blok Rokan secara otomatis.
+          Klik tombol <strong>Buka Benchmark Locator</strong> untuk membuka peta interaktif.
+          Semua titik BM akan ditampilkan di atas citra satelit wilayah Blok Rokan secara otomatis.
         </p>
       </div>
       <div class="step-card">
         <div class="step-num">2</div>
         <div class="step-icon">🔍</div>
-        <h3 class="step-title">Cari atau Filter</h3>
+        <h3 class="step-title">Cari atau Filter BM</h3>
         <p class="step-desc">
           Gunakan kotak pencarian untuk mencari BM berdasarkan nama atau ID.
-          Filter berdasarkan Orde atau Kecamatan untuk mempersempit hasil.
+          Filter berdasarkan Orde atau Kecamatan untuk mempersempit tampilan sesuai kebutuhan.
         </p>
       </div>
       <div class="step-card">
         <div class="step-num">3</div>
         <div class="step-icon">🎯</div>
-        <h3 class="step-title">Navigasi ke Lokasi</h3>
+        <h3 class="step-title">Lihat Detail &amp; Navigasi</h3>
         <p class="step-desc">
-          Klik marker untuk melihat detail lengkap. Gunakan tombol <strong>Directions</strong>
-          untuk membuka Google Maps, atau <strong>Find Nearest</strong> untuk menemukan titik terdekat.
+          Klik marker untuk melihat detail lengkap beserta foto lapangan. Gunakan
+          <strong>Arahkan</strong> untuk Google Maps, atau <strong>Nearest BM</strong>
+          untuk menemukan titik terdekat.
         </p>
       </div>
     </div>
@@ -1124,14 +1145,14 @@
 </section>
 
 <!-- ================================================================
-     WEBGIS PREVIEW SECTION
+     PREVIEW SECTION
 ================================================================ -->
 <section id="preview" aria-labelledby="preview-title">
   <div class="section-wrap">
     <p class="section-label">Preview</p>
-    <h2 class="section-title" id="preview-title">Lihat Aplikasinya</h2>
+    <h2 class="section-title" id="preview-title">Lihat Tampilannya</h2>
     <p class="section-desc">
-      Antarmuka peta interaktif yang bersih, responsif, dan mudah digunakan di desktop maupun mobile.
+      Antarmuka peta interaktif yang bersih, minimalis, dan mudah digunakan di desktop maupun mobile.
     </p>
 
     <!-- Mock browser preview -->
@@ -1145,43 +1166,82 @@
       <div class="pf-map">
         <div class="pf-grid"></div>
 
-        <!-- Fake sidebar -->
+        <!-- Mock sidebar — BM only -->
         <div class="pf-panel">
           <div class="pf-ph">
             <div class="pf-ph-title">Benchmark Locator</div>
-            <div class="pf-ph-sub">PTSI — Blok Rokan</div>
+            <div class="pf-ph-sub">PTSI — Pertamina Hulu Rokan</div>
           </div>
-          <div class="pf-search"></div>
-          <div class="pf-sec">Benchmark</div>
-          <div class="pf-row"><div class="pf-row-dot" style="background:#3B82F6"></div><div class="pf-row-line"></div><div class="pf-row-cnt"></div></div>
-          <div class="pf-row"><div class="pf-row-dot" style="background:#22C55E"></div><div class="pf-row-line"></div><div class="pf-row-cnt"></div></div>
-          <div class="pf-row"><div class="pf-row-dot" style="background:#F97316"></div><div class="pf-row-line"></div><div class="pf-row-cnt"></div></div>
-          <div class="pf-sec">Emergency</div>
-          <div class="pf-row"><div class="pf-row-dot" style="background:#EF4444"></div><div class="pf-row-line"></div><div class="pf-row-cnt"></div></div>
-          <div class="pf-row"><div class="pf-row-dot" style="background:#1D4ED8"></div><div class="pf-row-line"></div><div class="pf-row-cnt"></div></div>
-          <div class="pf-row"><div class="pf-row-dot" style="background:#F59E0B"></div><div class="pf-row-line"></div><div class="pf-row-cnt"></div></div>
+          <div class="pf-ph-bar"></div>
+          <div class="pf-body">
+            <div class="pf-search"></div>
+            <div class="pf-sec">Layer Benchmark</div>
+            <div class="pf-row">
+              <div class="pf-row-dot" style="background:#3B82F6"></div>
+              <div class="pf-row-line"></div>
+              <div class="pf-pill on" style="background:#3B82F6"><div class="pf-pill-thumb"></div></div>
+            </div>
+            <div class="pf-row">
+              <div class="pf-row-dot" style="background:#22C55E"></div>
+              <div class="pf-row-line"></div>
+              <div class="pf-pill on" style="background:#22C55E"><div class="pf-pill-thumb"></div></div>
+            </div>
+            <div class="pf-row">
+              <div class="pf-row-dot" style="background:#F97316"></div>
+              <div class="pf-row-line"></div>
+              <div class="pf-pill on" style="background:#F97316"><div class="pf-pill-thumb"></div></div>
+            </div>
+            <div class="pf-sec">Statistik BM</div>
+            <div class="pf-stat-row">
+              <div class="pf-stat s1"></div>
+              <div class="pf-stat s2"></div>
+              <div class="pf-stat s3"></div>
+            </div>
+          </div>
         </div>
 
-        <!-- Scattered mock markers -->
-        <div class="pf-mk" style="background:#3B82F6;top:30%;left:45%"></div>
-        <div class="pf-mk" style="background:#22C55E;top:55%;left:60%"></div>
-        <div class="pf-mk" style="background:#22C55E;top:40%;left:72%"></div>
-        <div class="pf-mk" style="background:#F97316;top:62%;left:50%"></div>
-        <div class="pf-mk" style="background:#F97316;top:45%;left:80%"></div>
-        <div class="pf-mk" style="background:#EF4444;top:25%;left:68%;width:12px;height:12px"></div>
-        <div class="pf-mk" style="background:#F59E0B;top:70%;left:65%"></div>
-        <div class="pf-mk" style="background:#F97316;top:35%;left:55%"></div>
-        <div class="pf-mk" style="background:#22C55E;top:68%;left:42%"></div>
-        <div class="pf-mk" style="background:#3B82F6;top:52%;left:85%"></div>
+        <!-- BM markers only -->
+        <div class="pf-mk" style="background:#3B82F6;top:28%;left:44%"></div>
+        <div class="pf-mk" style="background:#22C55E;top:52%;left:58%"></div>
+        <div class="pf-mk" style="background:#22C55E;top:38%;left:70%"></div>
+        <div class="pf-mk" style="background:#F97316;top:60%;left:50%"></div>
+        <div class="pf-mk" style="background:#F97316;top:42%;left:78%"></div>
+        <div class="pf-mk" style="background:#F97316;top:33%;left:55%"></div>
+        <div class="pf-mk" style="background:#22C55E;top:66%;left:42%"></div>
+        <div class="pf-mk" style="background:#3B82F6;top:50%;left:84%"></div>
+        <div class="pf-mk" style="background:#F97316;top:70%;left:68%"></div>
+        <div class="pf-mk" style="background:#22C55E;top:22%;left:62%"></div>
+
+        <!-- Mock popup -->
+        <div style="position:absolute;right:18%;top:22%;background:white;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.3);width:110px;overflow:hidden;font-size:7px;">
+          <div style="background:#3B82F6;padding:6px 7px;color:white;">
+            <div style="font-size:6px;opacity:.75;margin-bottom:2px;">⬤ ORDE 1</div>
+            <div style="font-weight:800;font-size:8px;line-height:1.2;">BM-CPI-1-MNS</div>
+            <div style="opacity:.7;font-size:6px;margin-top:2px;">📍 Minas, Siak</div>
+          </div>
+          <div style="background:#F1F5F9;height:30px;display:flex;align-items:center;justify-content:center;color:#94A3B8;font-size:6px;border-bottom:1px solid #E2E8F0;">📷 Foto belum tersedia</div>
+          <div style="padding:5px 6px;display:flex;flex-direction:column;gap:2px;">
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #E2E8F0;padding-bottom:2px;"><span style="color:#94A3B8;">Lokasi</span><span style="font-weight:700;color:#0F172A;">Minas Field</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:#94A3B8;">Koord.</span><span style="font-weight:700;color:#0F172A;">0.8207, 101.3929</span></div>
+          </div>
+          <div style="padding:4px 5px;background:#F8FAFC;display:grid;grid-template-columns:1fr 1fr;gap:3px;">
+            <div style="background:#2563EB;color:white;border-radius:4px;padding:3px;text-align:center;font-weight:700;">🧭</div>
+            <div style="background:white;border:1px solid #E2E8F0;border-radius:4px;padding:3px;text-align:center;">📋</div>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <!-- CTA inside map preview -->
     <div style="text-align:center;margin-top:32px;">
-      <a href="webgis.html" class="btn-primary" style="font-size:16px;padding:16px 36px;" aria-label="Open the Benchmark Locator WebGIS">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d="M10 2a8 8 0 100 16A8 8 0 0010 2z"/>
-          <path d="M13 10l-3 3-3-3M10 7v6"/>
+      <a href="webgis.html" class="btn-primary" style="font-size:16px;padding:16px 36px;" aria-label="Buka Benchmark Locator">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:18px;height:18px;flex-shrink:0">
+          <circle cx="10" cy="10" r="8"/>
+          <circle cx="10" cy="10" r="2.5" fill="currentColor" stroke="none"/>
+          <line x1="10" y1="2" x2="10" y2="5"/>
+          <line x1="10" y1="15" x2="10" y2="18"/>
+          <line x1="2" y1="10" x2="5" y2="10"/>
+          <line x1="15" y1="10" x2="18" y2="10"/>
         </svg>
         Buka Benchmark Locator
       </a>
@@ -1193,17 +1253,17 @@
 <!-- ================================================================
      FOOTER
 ================================================================ -->
-<footer aria-label="Site footer">
+<footer aria-label="Footer situs">
   <div class="footer-inner">
     <div class="footer-top">
 
       <div>
         <div class="footer-brand">
           <div class="footer-logo">
-            <img src="logoptsi.jpg" alt="PTSI Logo" />
+            <img src="logoptsi.jpg" alt="Logo PTSI" />
           </div>
           <div class="footer-brand-text">
-            <div class="fb-name">BM Locator — PTSI</div>
+            <div class="fb-name">Benchmark Locator — PTSI</div>
             <div class="fb-sub">Blok Rokan, Riau</div>
           </div>
         </div>
@@ -1215,18 +1275,17 @@
 
       <div class="footer-links">
         <h4>Navigasi</h4>
-        <a href="#home" class="footer-link">Beranda</a>
-        <a href="#about" class="footer-link">Tentang</a>
+        <a href="#home"         class="footer-link">Beranda</a>
+        <a href="#about"        class="footer-link">Tentang</a>
         <a href="#capabilities" class="footer-link">Fitur</a>
-        <a href="webgis.html" class="footer-link">Buka WebGIS</a>
+        <a href="webgis.html"   class="footer-link">Buka Peta</a>
       </div>
 
       <div class="footer-links">
-        <h4>Data</h4>
+        <h4>Data BM</h4>
         <a href="#" class="footer-link">BM Orde 1 (12 titik)</a>
         <a href="#" class="footer-link">BM Orde 2 (72 titik)</a>
         <a href="#" class="footer-link">BM Orde 3 (345+ titik)</a>
-        <a href="#" class="footer-link">Emergency Services</a>
       </div>
 
     </div>
@@ -1242,8 +1301,8 @@
   </div>
 </footer>
 
-<!-- Smooth scroll polyfill for nav links -->
 <script>
+  /* Smooth scroll untuk nav links */
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {
       const id = a.getAttribute('href').slice(1);
